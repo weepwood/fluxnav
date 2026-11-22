@@ -64,6 +64,19 @@ const COLORS = [
   { bg: 'bg-[#FFE7CC]', dot: 'bg-[#FF8C42]' },
 ];
 
+// Sandboxed embeds have an opaque origin and cannot access localStorage.
+// Keep the app usable for the lifetime of the page with an in-memory fallback,
+// while preserving localStorage persistence when opened as a normal site.
+const embedStorage = new Map<string, string>();
+const readStoredValue = (key: string) => {
+  try { return window.localStorage.getItem(key) ?? embedStorage.get(key) ?? null; }
+  catch { return embedStorage.get(key) ?? null; }
+};
+const writeStoredValue = (key: string, value: string) => {
+  embedStorage.set(key, value);
+  try { window.localStorage.setItem(key, value); } catch {}
+};
+
 const DEFAULT_BOOKMARKS: Bookmark[] = [
   {
     id: '1', url: 'https://github.com', title: 'GitHub', domain: 'github.com',
@@ -95,16 +108,16 @@ export default function App() {
   const [route, setRoute] = useState<'display' | 'manage'>(() => window.location.hash === '#/manage' ? 'manage' : 'display');
   // Data state
   const [bookmarks, setBookmarks] = useState<Bookmark[]>(() => {
-    const saved = localStorage.getItem('fluxnav-bookmarks');
+    const saved = readStoredValue('fluxnav-bookmarks');
     if (saved) try { return JSON.parse(saved); } catch {}
     return DEFAULT_BOOKMARKS;
   });
   const [aiConfig, setAiConfig] = useState<AIConfig>(() => {
-    const s = localStorage.getItem('fluxnav-ai');
+    const s = readStoredValue('fluxnav-ai');
     return s ? JSON.parse(s) : { baseUrl: 'https://api.openai.com/v1', apiKey: '', model: 'gpt-4o-mini' };
   });
   const [githubConfig, setGithubConfig] = useState<GithubConfig>(() => {
-    const s = localStorage.getItem('fluxnav-gh');
+    const s = readStoredValue('fluxnav-gh');
     return s ? JSON.parse(s) : { token: '', gistId: '' };
   });
 
@@ -126,9 +139,9 @@ export default function App() {
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Persist
-  useEffect(() => { localStorage.setItem('fluxnav-bookmarks', JSON.stringify(bookmarks)); }, [bookmarks]);
-  useEffect(() => { localStorage.setItem('fluxnav-ai', JSON.stringify(aiConfig)); }, [aiConfig]);
-  useEffect(() => { localStorage.setItem('fluxnav-gh', JSON.stringify(githubConfig)); }, [githubConfig]);
+  useEffect(() => { writeStoredValue('fluxnav-bookmarks', JSON.stringify(bookmarks)); }, [bookmarks]);
+  useEffect(() => { writeStoredValue('fluxnav-ai', JSON.stringify(aiConfig)); }, [aiConfig]);
+  useEffect(() => { writeStoredValue('fluxnav-gh', JSON.stringify(githubConfig)); }, [githubConfig]);
 
   useEffect(() => {
     const syncRoute = () => setRoute(window.location.hash === '#/manage' ? 'manage' : 'display');
