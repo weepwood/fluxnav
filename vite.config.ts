@@ -8,8 +8,9 @@ import { viteSingleFile } from "vite-plugin-singlefile";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// https://vite.dev/config/
+// GitHub Pages 项目站点托管在 /fluxnav/，其他环境保持原路径。
 export default defineConfig({
+  base: process.env.GITHUB_PAGES === "true" ? "/fluxnav/" : "/",
   plugins: [react(), tailwindcss(), viteSingleFile()],
   resolve: {
     alias: {
