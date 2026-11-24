@@ -46,3 +46,7 @@ extension/ 为 Chrome/Edge MV3 捕获扩展，加载解压目录即可使用；�
 正式版本节点：在 main 上准备好版本号（package.json、package-lock.json、extension/manifest.json）与 CHANGELOG.md，然后打开 Actions → 正式版本完整验证与发布 → Run workflow。默认仅完整验证并生成分发产物；勾选 publish 后，全部测试通过才创建对应提交的 Git tag 与 GitHub Release。既有版本或标签不会被覆盖。也可使用 `gh workflow run release.yml --ref main -f publish=true`。正式发布工作流不重复部署 Pages。
 
 本地命令：`npm run check:quick` 用于日常检查；`npm run check` 包含完整单元测试和压力测试；浏览器 E2E 单独运行。正式发布工作流可以随时手动用于专项验证，不必等到新版本。
+
+## 1.3 开发里程碑
+
+收藏集通过 ` / ` 表示层级，如 `设计 / 图标`，父级显示全部子级书签，重命名会更新整棵子树。HTML 导出保留实际嵌套目录。管理页选择手动排序后，可在同一置顶分组内通过拖动手柄或快捷菜单调整顺序；也可直接拖动书签到收藏集。右键或更多按钮打开快捷操作菜单。排序保存在书签记录中并参与 JSON 备份及同步；旧版数据无需迁移。日常开发版本只部署 Pages，不自动创建 Release。
