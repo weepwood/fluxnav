@@ -1,0 +1,2 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {BREAKPOINTS,workspaceMode} from '../src/responsive.ts';
+test('workspace mode is consistent at every breakpoint edge',()=>{for(const [w,expected] of [[320,'phone'],[650,'phone'],[651,'tablet'],[1000,'tablet'],[1001,'desktop'],[1200,'desktop'],[1599,'desktop'],[1600,'wide'],[2560,'wide']] as const)assert.equal(workspaceMode(w),expected);assert.equal(BREAKPOINTS.resizable,1200);});
