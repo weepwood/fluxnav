@@ -1,4 +1,4 @@
-import {appendTags,canonical,parseBookmark,newId,type Bookmark,type Library} from './domain.ts';
+import {appendTags,canonical,newId,type Bookmark,type Library} from './domain.ts';
 import {analyzeJson} from './imports.ts';
 export type OrganizeSuggestion={id:string;expectedUpdatedAt:number;tags?:string[];collection?:string;reason?:string};
 export type AIResult<T>={items:T[];issues:string[]};
