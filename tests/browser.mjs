@@ -47,13 +47,13 @@ try{
   await page.getByRole('button',{name:'框架',exact:true}).waitFor({state:'detached'});
   await page.getByRole('button',{name:/全部资源/}).first().click();
   // Nested HTML folders are preserved without loading remote images.
-  await page.getByRole('button',{name:'导入书签'}).click();
+  await page.getByRole('button',{name:'导入书签',exact:true}).first().click();
   const html='<DL><p><DT><H3>Design</H3><DL><p><DT><H3>Icons</H3><DL><p><DT><A HREF="https://icons.example.com">Icons Example</A></DL><p></DL><p></DL><p>';
   await page.getByLabel('选择书签文件').setInputFiles({name:'bookmarks.html',mimeType:'text/html',buffer:Buffer.from(html)});
   await page.getByRole('button',{name:'确认导入'}).click();
   await page.getByRole('button',{name:'Design / Icons',exact:true}).waitFor();
   await page.getByRole('button',{name:/全部资源/}).first().click();
-  await page.getByRole('button',{name:'导入书签'}).click();
+  await page.getByRole('button',{name:'导入书签',exact:true}).first().click();
   await page.getByLabel('选择书签文件').setInputFiles({name:'partial.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify([{url:'https://keep.example',title:'Keep import'},{url:'https://exclude.example',title:'Exclude import'},{url:'javascript:alert(1)'}]))});
   await page.getByRole('checkbox',{name:/Exclude import/}).uncheck();
   await page.getByRole('button',{name:'确认导入'}).click();
@@ -78,7 +78,7 @@ try{
   await page.getByRole('button',{name:'保存名称'}).click();
   await page.getByRole('button',{name:'开发收藏',exact:true}).waitFor();
   await page.getByRole('button',{name:/全部资源/}).first().click();
-  await page.getByRole('button',{name:'导入书签'}).click();
+  await page.getByRole('button',{name:'导入书签',exact:true}).first().click();
   const base={description:'',notes:'',collection:'',addedAt:1,updatedAt:1,lastVisited:0,visitCount:0,favorite:false,pinned:false,archived:false,deleted:false};
   const backup={schemaVersion:1,bookmarks:[{...base,id:'dup-1',url:'https://dupe.example.com/#a',title:'Dupe A',tags:['one']},{...base,id:'dup-2',url:'https://dupe.example.com/#b',title:'Dupe B',tags:['two']}]};
   await page.getByLabel('选择书签文件').setInputFiles({name:'duplicate.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(backup))});
