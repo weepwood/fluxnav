@@ -1,4 +1,4 @@
-import {chooseBookmark,emptyLibrary,mergeLibraries,parseBookmark,parseLibrary,type Bookmark,type Library} from './domain';
+import {chooseBookmark,emptyLibrary,mergeLibraries,parseBookmark,parseLibrary,type Bookmark,type Library} from './domain.ts';
 export const readLocal=(key:string):string|null=>{try{return localStorage.getItem(key);}catch{return null;}};
 export const writeLocal=(key:string,value:string)=>{try{localStorage.setItem(key,value);return true;}catch{return false;}};
 export function readSettings<T>(key:string,defaults:T):T{try{const raw=JSON.parse(readLocal(key)||'null');return raw&&typeof raw==='object'&&!Array.isArray(raw)?{...defaults,...raw}:defaults;}catch{return defaults;}}

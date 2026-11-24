@@ -42,7 +42,7 @@ export function analyzeCandidates(rows:Candidate[],source:ImportReport['source']
    const key=canonical(bookmark.url);if(!bookmark.deleted){if(urls.has(key)){report.duplicateUrls++;issue(row,'duplicate','文件内重复网址，添加模式将跳过');}urls.add(key);}
    if(fix.length){report.repaired++;report.restoreAllowed=false;issue(row,'repair',fix.join('；'));}
    // Restore only exact exported records; repairable foreign records may be added, never overwrite by ID.
-   if(trustedEnvelope&&(value.url!==bookmark.url||value.id!==bookmark.id||value.title!==bookmark.title||!Array.isArray(value.tags)||bools.some(k=>typeof value[k]!=='boolean')||typeof value.description!=='string'||typeof value.notes!=='string'||typeof value.collection!=='string'||!Number.isSafeInteger(value.lastVisited)||!Number.isSafeInteger(value.visitCount)))report.restoreAllowed=false;
+   if(trustedEnvelope&&(value.url!==bookmark.url||value.id!==bookmark.id||value.title!==bookmark.title||JSON.stringify(value.tags)!==JSON.stringify(bookmark.tags)||value.description!==bookmark.description||value.notes!==bookmark.notes||value.collection!==bookmark.collection||bools.some(k=>typeof value[k]!=='boolean')||typeof value.description!=='string'||typeof value.notes!=='string'||typeof value.collection!=='string'||!Number.isSafeInteger(value.lastVisited)||!Number.isSafeInteger(value.visitCount)))report.restoreAllowed=false;
    report.records.push(bookmark);
   }catch(e){report.invalid++;report.restoreAllowed=false;issue(row,'invalid',(e as Error).message||'无效书签');}
  }
@@ -59,7 +59,7 @@ export function analyzeJson(raw:unknown,now=Date.now()):ImportReport{
 export function analyzeHtml(html:string):ImportReport{
  // Template content is inert and never inserted into the visible document.
  const template=document.createElement('template');template.innerHTML=html;
- const anchors=template.content.querySelectorAll('a[href]');
+ const anchors=template.content.querySelectorAll('a');
  if(anchors.length>MAX_IMPORT_ROWS)throw Error('单次最多导入 100,000 条记录');
  const rows:Candidate[]=[];
  for(let i=0;i<anchors.length;i++){const a=anchors[i];const headings:string[]=[];let folder=a.closest('dl');
@@ -70,19 +70,25 @@ export function analyzeHtml(html:string):ImportReport{
 }
 export function decodeImport(buffer:ArrayBuffer,encoding='auto'){
  const bytes=new Uint8Array(buffer);
- let chosen=encoding==='auto'?(bytes[0]===255&&bytes[1]===254?'utf-16le':bytes[0]===254&&bytes[1]===255?'utf-16be':'utf-8'):encoding;
+ const chosen=encoding==='auto'?(bytes[0]===255&&bytes[1]===254?'utf-16le':bytes[0]===254&&bytes[1]===255?'utf-16be':'utf-8'):encoding;
  try{return new TextDecoder(chosen,{fatal:true}).decode(bytes).replace(/^\uFEFF/,'');}catch{throw Error('文件编码无法解析，请选择实际编码后重试（如 GB18030）');}
 }
 export function previewImport(report:ImportReport,library:Library,mode:'merge'|'restore'){
  const known=new Set(library.bookmarks.filter(b=>!b.deleted).map(b=>canonical(b.url))),ids=new Map(library.bookmarks.map(b=>[b.id,b]));
- let added=0,skipped=0,updated=0,deletions=0;
+ let added=0,skipped=0,updated=0,deletions=0,idCollisions=0,urlConflicts=0;
  const records:Bookmark[]=[];
  if(mode==='restore'){
   if(!report.restoreAllowed)throw Error('只有完整且无异常的 FluxNav JSON 备份可以按 ID 恢复');
-  for(const b of report.records){const current=ids.get(b.id);if(!current){added++;if(b.deleted)deletions++;}else{const winner=mergeLibraries({schemaVersion:1,bookmarks:[current]},{schemaVersion:1,bookmarks:[b]}).bookmarks[0];if(winner===current){skipped++;continue;}updated++;if(b.deleted&&!current.deleted)deletions++;}records.push(b);}
+  for(const b of report.records){const current=ids.get(b.id);if(!current){added++;if(b.deleted)deletions++;else if(known.has(canonical(b.url)))urlConflicts++;}else{const winner=mergeLibraries({schemaVersion:1,bookmarks:[current]},{schemaVersion:1,bookmarks:[b]}).bookmarks[0];if(winner===current){skipped++;continue;}updated++;if(b.deleted&&!current.deleted)deletions++;}records.push(b);}
  }else{
-  for(const b of report.records){const key=canonical(b.url);if(b.deleted||known.has(key)){skipped++;continue;}known.add(key);added++;records.push(b);}
+  for(const b of report.records){const key=canonical(b.url);if(b.deleted||known.has(key)){skipped++;continue;}known.add(key);added++;if(ids.has(b.id))idCollisions++;records.push(b);}
  }
  if(library.bookmarks.length+added>MAX_IMPORT_ROWS)throw Error('合并后超过 100,000 条存储上限，请分库或清理后再导入');
- return {added,skipped,updated,deletions,records};
+ return {added,skipped,updated,deletions,idCollisions,urlConflicts,records};
+}
+
+export function decodeAndAnalyze(buffer:ArrayBuffer,encoding:string,name:string):{report:ImportReport}|{html:string}{
+ const clean=decodeImport(buffer,encoding).trimStart();
+ if(/^[\[{]/.test(clean)||(!clean.startsWith('<')&&/\.json$/i.test(name)))return {report:analyzeJson(JSON.parse(clean))};
+ return {html:clean};
 }

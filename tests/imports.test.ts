@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {analyzeJson,previewImport,decodeImport} from '../src/imports.ts';
+import {analyzeJson,previewImport,decodeImport,decodeAndAnalyze} from '../src/imports.ts';
 import {parseBookmark,parseLibrary} from '../src/domain.ts';
 const existing=parseLibrary([parseBookmark({id:'old',url:'https://old.example',title:'Old',addedAt:1,updatedAt:1})]);
 test('mixed untrusted import isolates invalid rows, repairs title and tags, reports duplicates',()=>{
@@ -17,3 +17,5 @@ test('strict backup restore preserves tombstones but rejects malformed metadata 
  assert.throws(()=>analyzeJson({schemaVersion:99,bookmarks:[]}));
 });
 test('encoding detection and invalid byte rejection',()=>{const data=new Uint8Array([0xff,0xfe,0x5b,0,0x5d,0]);assert.equal(decodeImport(data.buffer),'[]');assert.throws(()=>decodeImport(new Uint8Array([0xff]).buffer));});
+
+test('file detection, invalid schema and imported ID collision',()=>{const bytes=new TextEncoder().encode('[{"id":"old","url":"https://new.example","title":"New"}]');const payload=decodeAndAnalyze(bytes.buffer,'auto','export.html');assert.ok('report' in payload);if('report' in payload){const plan=previewImport(payload.report,existing,'merge');assert.equal(plan.idCollisions,1);assert.equal(plan.added,1);}});
