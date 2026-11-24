@@ -8,7 +8,7 @@ try{
   browser=await chromium.launch({headless:true});const page=await browser.newPage({viewport:{width:1440,height:900},reducedMotion:'reduce',acceptDownloads:true});
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto('http://127.0.0.1:4173/#/manage');
-  const resource=title=>page.locator('.resource-main').filter({has:page.locator('.resource-title>span:first-child',{hasText:title})});
+  const resource=title=>page.locator('.resource-main').filter({has:page.getByText(title,{exact:true})});
   const inspector=page.locator('.resource-inspector');
   const closed=()=>page.locator('dialog').waitFor({state:'detached'});
   console.log('E2E: add, favorite, trash and restore');
