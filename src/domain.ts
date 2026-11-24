@@ -68,12 +68,12 @@ export function addUnique(library: Library, items: Bookmark[]) {
 }
 // Cache immutable record projections; each keystroke reuses normalized text.
 const normalizeSearch=(s:string)=>s.normalize('NFKC').toLowerCase().normalize('NFD').replace(/\p{M}/gu,'');
-type SearchRecord={title:string;url:string;tags:string;body:string};
+type SearchRecord={title:string;url:string;tags:string;body:string;words:string[]};
 const searchCache=new WeakMap<Bookmark,SearchRecord>();
 function searchRecord(b:Bookmark):SearchRecord {
  const cached=searchCache.get(b);if(cached)return cached;
  const title=normalizeSearch(b.title),url=normalizeSearch(b.url),tags=normalizeSearch([b.collection,...b.tags].join(' '));
- const record={title,url,tags,body:[title,url,tags,normalizeSearch(b.description),normalizeSearch(b.notes)].join(' ')};
+ const record={title,url,tags,words:title.split(/[^a-z0-9]+/),body:[title,url,tags,normalizeSearch(b.description),normalizeSearch(b.notes)].join(' ')};
  searchCache.set(b,record);return record;
 }
 const fuzzy=(word:string,term:string)=>{
@@ -90,7 +90,7 @@ export function searchBookmarks(list: Bookmark[], query: string, sort: Sort) {
   let score=0,ok=true;
   if(terms.length){const row=searchRecord(b);for(const t of terms){
    if(row.title===t)score+=30;else if(row.title.startsWith(t))score+=20;else if(row.title.includes(t))score+=14;else if(row.url.includes(t))score+=10;else if(row.tags.includes(t))score+=8;else if(row.body.includes(t))score+=3;
-   else if(row.title.split(/[^a-z0-9]+/).some(w=>fuzzy(w,t)))score+=1;
+   else if(row.words.some(w=>fuzzy(w,t)))score+=1;
    else{ok=false;break;}
   }}
   if(ok)matches.push({b,score});
@@ -129,4 +129,31 @@ export function exportHtml(list: Bookmark[]) {
  const link=(b:Bookmark)=>'<DT><A HREF="'+esc(b.url)+'" ADD_DATE="'+Math.floor(b.addedAt/1000)+'">'+esc(b.title)+'</A>';
  const body=[...groups].map(([name,items])=>name?'<DT><H3>'+esc(name)+'</H3>\n<DL><p>\n'+items.map(link).join('\n')+'\n</DL><p>':items.map(link).join('\n')).join('\n');
  return '<!DOCTYPE NETSCAPE-Bookmark-file-1>\n<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">\n<TITLE>FluxNav</TITLE>\n<H1>FluxNav</H1>\n<DL><p>\n'+body+'\n</DL><p>';
+}
+
+/** Only exact canonical URL duplicates are eligible; choose a survivor explicitly. */
+export function duplicateGroups(bookmarks:Bookmark[]){
+ const byUrl=new Map<string,Bookmark[]>();
+ for(const b of bookmarks){if(b.deleted)continue;const key=canonical(b.url);const group=byUrl.get(key);if(group)group.push(b);else byUrl.set(key,[b]);}
+ return [...byUrl.values()].filter(g=>g.length>1);
+}
+export function mergeDuplicates(library:Library,keepId:string,removeIds:readonly string[],now=Date.now()):Library{
+ const keep=library.bookmarks.find(b=>b.id===keepId&&!b.deleted);
+ if(!keep)throw Error('要保留的资源不存在');
+ const ids=new Set(removeIds.filter(id=>id!==keepId));
+ const duplicates=library.bookmarks.filter(b=>ids.has(b.id)&&!b.deleted);
+ if(!duplicates.length||duplicates.length!==ids.size||duplicates.some(b=>canonical(b.url)!==canonical(keep.url)))throw Error('只允许合并同一规范化网址的有效资源');
+ const all=[keep,...duplicates];
+ const texts=(key:'description'|'notes')=>[...new Set(all.map(b=>b[key]).filter(Boolean))].join('\n\n').slice(0,10000);
+ const collection=keep.collection||duplicates.find(b=>b.collection)?.collection||'';
+ const alternative=[...new Set(all.map(b=>b.collection).filter(c=>c&&c!==collection))];
+ const notes=[texts('notes'),alternative.length?'其他收藏集：'+alternative.join('、'):''].filter(Boolean).join('\n\n').slice(0,10000);
+ const merged={...keep,description:texts('description'),notes,collection,tags:appendTags([],all.flatMap(b=>b.tags)),favorite:all.some(b=>b.favorite),pinned:all.some(b=>b.pinned),archived:all.every(b=>b.archived),addedAt:Math.min(...all.map(b=>b.addedAt)),lastVisited:Math.max(...all.map(b=>b.lastVisited)),visitCount:all.reduce((n,b)=>Math.min(Number.MAX_SAFE_INTEGER,n+b.visitCount),0),updatedAt:Math.max(now,keep.updatedAt+1)};
+ return {...library,bookmarks:library.bookmarks.map(b=>b.id===keepId?merged:ids.has(b.id)?{...b,deleted:true,updatedAt:Math.max(now,b.updatedAt+1)}:b)};
+}
+export function renameCollection(library:Library,from:string,to:string,now=Date.now()):Library{
+ const target=to.trim().slice(0,150);
+ if(!from||from===target)throw Error('请输入不同的收藏集名称');
+ const ids=library.bookmarks.filter(b=>!b.deleted&&b.collection===from).map(b=>b.id);
+ return patchBookmarks(library,ids,{collection:target},now);
 }
