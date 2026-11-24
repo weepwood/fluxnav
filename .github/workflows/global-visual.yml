@@ -1,0 +1,43 @@
+name: 全局视觉验收
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'tests/global-visual.mjs'
+      - '.github/workflows/global-visual.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: global-visual-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  visual:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm install --no-save --package-lock=false --no-audit --no-fund playwright@1.58.2
+      - name: 安装截图环境中文字体
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends fonts-noto-cjk
+      - run: npx playwright install chromium
+      - run: node --experimental-strip-types --test tests/performance.test.ts tests/theme-contrast.test.ts
+      - run: node tests/global-visual.mjs
+      - run: node tests/design-system-visual.mjs
+      - run: node tests/responsive-visual.mjs
+      - run: node tests/workspace-visual.mjs
+      - run: node tests/home-visual.mjs
+      - run: node tests/motion-visual.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: global-visual-screenshots
+          path: global-visual-artifacts/
+          if-no-files-found: warn
