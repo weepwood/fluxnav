@@ -34,11 +34,11 @@ async function mergeIntoDatabase(library:Library):Promise<Library>{
   const fail=(e:unknown)=>{reject(e);try{tx.abort();}catch{/* already aborted */}};
   const merge=(prior:Map<string,Bookmark>,revision:number)=>{
    try{
-    const records=new Map(prior);let changed=false;
-    for(const b of library.bookmarks){const prev=records.get(b.id),winner=chooseBookmark(prev,b);if(winner!==prev){records.set(b.id,winner);store.put(winner);changed=true;}}
+    let records=prior;let changed=false;
+    for(const b of library.bookmarks){const prev=records.get(b.id),winner=chooseBookmark(prev,b);if(winner!==prev){if(!changed)records=new Map(prior);records.set(b.id,winner);store.put(winner);changed=true;}}
     if(records.size>100000)throw Error('书签数量超过存储上限');
     const next=changed?revision+1:revision;if(changed)meta.put(next,'revision');
-    nextCache={revision:next,records};result={schemaVersion:1,bookmarks:[...records.values()].sort((a,b)=>a.id.localeCompare(b.id))};
+    nextCache={revision:next,records};result={schemaVersion:1,bookmarks:[...records.values()]};
    }catch(e){fail(e);}
   };
   rev.onsuccess=()=>{
@@ -50,7 +50,7 @@ async function mergeIntoDatabase(library:Library):Promise<Library>{
  });
 }
 const FALLBACK='fluxnav-v1-fallback';
-function readBackup(key:string){const raw=readLocal(key);if(!raw)return {library:undefined,invalid:false};try{return {library:parseLibrary(JSON.parse(raw)),invalid:false};}catch{return {library:undefined,invalid:true};}}
+function readBackup(key:string){const raw=readLocal(key);if(!raw)return {raw,library:undefined,invalid:false};try{return {raw,library:parseLibrary(JSON.parse(raw)),invalid:false};}catch{return {raw,library:undefined,invalid:true};}}
 export async function loadLibrary():Promise<{library:Library;warning:string}>{
  const legacy=readBackup('fluxnav-bookmarks'),fallback=readBackup(FALLBACK);
  const warning=[legacy.invalid?'旧数据无法解析，原始数据仍保留。':'',fallback.invalid?'降级数据无法解析，原始数据仍保留。':''].filter(Boolean).join(' ');
@@ -66,7 +66,7 @@ export function saveLibrary(library:Library):Promise<{warning:string;library:Lib
   const fallback=readBackup(FALLBACK);
   try{
    const merged=await mergeIntoDatabase(fallback.library?mergeLibraries(library,fallback.library):library);
-   if(!fallback.invalid)try{localStorage.removeItem(FALLBACK);}catch{}
+   if(!fallback.invalid&&readLocal(FALLBACK)===fallback.raw)try{localStorage.removeItem(FALLBACK);}catch{}
    return {warning:fallback.invalid?'存在损坏的降级备份，已保留原始内容。':'',library:merged};
   }catch{
    const merged=fallback.library?mergeLibraries(library,fallback.library):library;

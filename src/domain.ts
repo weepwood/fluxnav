@@ -69,7 +69,7 @@ export function addUnique(library: Library, items: Bookmark[]) {
     const item = { ...b, id: ids.has(b.id) ? newId() : b.id, updatedAt: Date.now() };
     ids.add(item.id); added.push(item);
   }
-  return { library: { ...library, bookmarks: [...library.bookmarks, ...added] }, added: added.length };
+  return { library: added.length?{ ...library, bookmarks: [...library.bookmarks, ...added] }:library, added: added.length };
 }
 // Cache immutable record projections; each keystroke reuses normalized text.
 const normalizeSearch=(s:string)=>s.normalize('NFKC').toLowerCase().normalize('NFD').replace(/\p{M}/gu,'');
@@ -105,6 +105,7 @@ export function searchBookmarks(list: Bookmark[], query: string, sort: Sort) {
 export function sameLibrary(a:Library,b:Library){
  if(a===b)return true;
  if(a.bookmarks.length!==b.bookmarks.length)return false;
+ if(a.bookmarks.every((x,i)=>x===b.bookmarks[i]))return true;
  const index=new Map(a.bookmarks.map(x=>[x.id,x]));
  return b.bookmarks.every(x=>{const prev=index.get(x.id);return prev===x||(prev?.updatedAt===x.updatedAt&&JSON.stringify(prev)===JSON.stringify(x));});
 }
