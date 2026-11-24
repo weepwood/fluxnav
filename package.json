@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit",
     "test": "node --experimental-strip-types --test tests/*.test.ts",
     "check": "npm run typecheck && npm test",
-    "test:quick": "node --experimental-strip-types --test tests/domain.test.ts tests/crypto.test.ts",
+    "test:quick": "node --experimental-strip-types --test tests/domain.test.ts tests/crypto.test.ts tests/imports.test.ts",
     "check:quick": "npm run typecheck && npm run test:quick"
   },
   "dependencies": {
