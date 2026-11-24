@@ -25,6 +25,11 @@ jobs:
         env:
           GITHUB_PAGES: 'true'
       - run: npm run build:portable
+      - name: 浏览器端到端测试
+        run: |
+          npm install --no-save --package-lock=false playwright@1.58.2
+          npx playwright install --with-deps chromium
+          node tests/browser.mjs
       - name: 验证发布产物
         run: |
           test -f dist/index.html
@@ -55,6 +60,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - uses: actions/configure-pages@v5
       - uses: actions/deploy-pages@v4
         id: deployment
   release:

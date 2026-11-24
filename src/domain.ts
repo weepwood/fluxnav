@@ -12,7 +12,7 @@ const time = (v: unknown, fallback = 0) => typeof v === 'number' && Number.isFin
 export function normalizeUrl(raw: string) {
   const input = raw.trim();
   if (!input || /[\s\u0000-\u001f]/.test(input)) throw Error('请输入有效网址');
-  const value = /^[a-z][a-z\d+.-]*:/i.test(input) ? input : 'https://' + input;
+  const value = /^[a-z][a-z\d+.-]*:/i.test(input) && !/^(?:localhost|[\w.-]+\.[\w.-]+):\d+(?:\/|$)/i.test(input) ? input : 'https://' + input;
   const url = new URL(value);
   if (!['https:', 'http:'].includes(url.protocol) || !url.hostname || url.username || url.password) throw Error('仅支持无凭据的 HTTP/HTTPS 网址');
   return url.href;
