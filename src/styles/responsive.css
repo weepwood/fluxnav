@@ -1,0 +1,95 @@
+/* Workspace thresholds mirror src/responsive.ts. Preserve legacy page composition during migration.
+   Phone <=650, tablet <=1000, desktop >=1001, resizable >=1200, wide >=1600. */
+.workspace{--status-height:27px;--pane-padding:clamp(14px,1.5vw,24px)}
+.workspace-status{height:var(--status-height);min-height:var(--status-height);padding-inline:12px;gap:10px;overflow:hidden}
+.workspace-status>span{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.workspace-header .search-trigger{min-width:0;flex:1 1 180px}.workspace-header .search-trigger>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.workspace-header .search-trigger svg,.workspace-header .search-trigger kbd{flex:none}
+.workspace-header .header-tools{min-width:0;gap:6px}
+.library-head .toolbar{min-width:0}.library-head .toolbar .library-search{min-width:0}.library-heading>div:first-child{min-width:0}.library-heading .inline{min-width:0;flex:none}
+.library-head .bulk{min-width:0;display:flex;gap:6px;align-items:center}
+.bulk-actions{display:flex;flex-wrap:wrap;gap:5px;flex:1 1 auto;min-width:0;align-items:center}.bulk-actions button{flex:none}
+.bulk .batch-form{min-width:0;flex:1 0 100%;gap:5px}.bulk .batch-form input{min-width:0}
+.workspace .resource-inspector{min-height:0;max-height:none}.workspace .inspector-actions{max-height:48%;overflow:auto;overscroll-behavior:contain}
+.workspace .inspector-scroll{min-width:0}.workspace .inspector-section .tags{display:flex;flex-wrap:wrap;gap:4px}.workspace .inspector-section .tags span{max-width:100%;overflow-wrap:anywhere}
+.workspace .sidebar-scroll{min-width:0}.workspace .sidebar-categories{min-width:0}
+.workspace .sidebar-scrim,.workspace .detail-scrim{touch-action:manipulation}
+.workspace .resource-inspector .inspector-header button{flex:none}
+dialog{max-width:calc(100vw - 24px);overscroll-behavior:contain}
+dialog .form{min-width:0}dialog .form .inline,dialog .actions{min-width:0;flex-wrap:wrap}
+dialog .form label{min-width:0}dialog .form input,dialog .form select,dialog .form textarea{min-width:0}
+dialog .form .inline>input:not([type=checkbox]){min-width:100px}dialog .form .inline>button{max-width:100%;white-space:normal}
+dialog .form .actions>button{white-space:normal}
+dialog .settings-layout .settings{min-width:0}
+.resource-menu{max-width:calc(100vw - 16px);overscroll-behavior:contain}
+@media(min-width:1600px){
+ .workspace-header{padding-inline:24px}.workspace-header .search-trigger{max-width:460px}.workspace{--pane-padding:28px}
+ .workspace .resources.grid{grid-template-columns:repeat(auto-fill,minmax(min(250px,100%),1fr));gap:12px}
+ .workspace .resource-inspector .inspector-scroll{padding-inline:18px}
+ .home-v18[data-width=wide]{--home-content:1480px}
+}
+@media(min-width:651px) and (max-width:1000px){
+ .workspace{--pane-padding:14px}.workspace-header .brand{min-width:0}.workspace-header .header-tools{gap:4px}
+ .workspace .resource-inspector{top:var(--header-height);bottom:var(--status-height);height:auto;width:min(360px,88vw)}
+ .workspace .detail-scrim:not([hidden]){inset:var(--header-height) 0 var(--status-height)}
+ .library-heading{flex-wrap:wrap;align-items:flex-start}.library-heading>.inline{flex-wrap:wrap}
+}
+@media(max-width:650px){
+ .workspace{--header-height:94px;--pane-padding:10px;--status-height:27px}
+ .workspace .workspace-header{display:grid;grid-template-columns:auto auto minmax(0,1fr);grid-template-rows:36px 36px;align-content:center;gap:5px 6px;padding:6px 9px;height:var(--header-height);min-height:var(--header-height)}
+ .workspace-header .brand{grid-column:1;grid-row:1;min-width:0;font-size:16px;gap:6px}
+ .workspace-header .ui-button[aria-label="切换侧栏"]{grid-column:2;grid-row:1;min-width:34px;height:34px}
+ .workspace-header .header-tools{grid-column:3;grid-row:1;justify-self:end;margin:0;gap:3px}
+ .workspace-header .search-trigger{grid-column:1/-1;grid-row:2;order:0;width:100%;min-height:36px;margin:0}
+ .workspace-header .header-tools .tool-button{min-height:34px;min-width:30px;padding:5px 6px;justify-content:center}
+ .workspace-header .header-tools .home-nav{display:inline-flex;font-size:0;gap:0;padding:5px 6px;align-items:center}.workspace-header .header-tools .home-nav svg{width:15px;height:15px}
+ .workspace .workspace-nav[data-expanded=true],.workspace .workspace-nav[data-expanded=false]{max-height:none;top:var(--header-height);bottom:var(--status-height);height:auto;width:min(300px,88vw)}
+ .workspace .workspace-nav .sidebar-scroll{flex:1 1 0;min-height:0}
+ .workspace .workspace-nav .sidebar-bottom{flex:none;padding-bottom:8px}
+ .workspace .workspace-nav .nav-entry{min-height:39px}
+ .workspace .sidebar-scrim:not([hidden]),.workspace .detail-scrim:not([hidden]){inset:var(--header-height) 0 var(--status-height)}
+ .workspace .resource-inspector{top:var(--header-height);bottom:var(--status-height);height:auto;width:min(380px,100vw);max-width:100%;padding-bottom:env(safe-area-inset-bottom,0px)}
+ .workspace .inspector-actions{max-height:52%;padding:8px 10px}.inspector-action-grid button{min-height:36px}
+ .workspace .library-heading{align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:10px}.workspace .library-heading h1{font-size:22px}.workspace .library-heading>.inline{flex-wrap:wrap;justify-content:flex-start;gap:4px}
+ .workspace .library-head .toolbar{gap:5px}.workspace .library-head .toolbar select{max-width:103px;padding-inline:7px}
+ .workspace .library-head .toolbar .library-search{padding-inline:7px}
+ .workspace .library-head .bulk{flex-wrap:nowrap;gap:5px;align-items:flex-start}.workspace .library-head .bulk:has(.batch-form){flex-wrap:wrap}
+ .workspace .bulk-count{padding-block:6px;margin-inline:2px;flex:none}.workspace .bulk-actions{flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;padding-bottom:2px;flex:1 1 0}
+ .workspace .bulk-actions button{min-height:31px}.workspace .bulk .batch-form input{flex:1 1 100%;width:100%}
+ .workspace .resource-main{min-width:0}.workspace .resources.list article{min-height:55px}.workspace .resources .resource-more{min-width:32px;min-height:34px}
+ .workspace .resources.grid{grid-template-columns:minmax(0,1fr)}
+ .workspace .pagination button{min-height:34px}
+ .home-v18 .home-header-actions .ui-button,.home-v18 .home-library-tools .ui-button{min-height:34px}
+ dialog{max-height:calc(100dvh - 16px);max-width:calc(100vw - 16px);width:calc(100vw - 16px);border-radius:12px}
+ dialog[data-variant=settings]{width:calc(100vw - 16px);height:min(680px,calc(100dvh - 16px));max-height:calc(100dvh - 16px)}
+ dialog[data-variant=command]{width:calc(100vw - 16px);margin:10px auto auto;max-height:calc(100dvh - 20px)}
+ .settings-layout .settings-nav{min-width:0;flex-wrap:nowrap;overscroll-behavior-x:contain}.settings-layout .settings-nav button{min-height:34px;flex:none}
+ .settings-layout .settings{scrollbar-gutter:auto;padding:12px}
+ .form .preview-list{max-height:min(270px,38dvh)}.form .preview-row{min-width:0}.form .preview-row span{min-width:0;overflow-wrap:anywhere}
+}
+@media(max-width:360px){
+ .workspace-header .brand{font-size:15px}.workspace-header .brand-mark{width:25px;height:25px}.workspace-header .header-tools{gap:2px}.workspace-header .header-tools .tool-button{min-width:26px;padding-inline:4px}.workspace .workspace-header{gap:5px;padding-inline:6px}
+ .workspace .library-head .toolbar select{max-width:91px}.workspace .library-heading>.inline{gap:3px}.workspace .library-heading .tool-button{padding-inline:5px}
+ .home-v18 .home-header .brand{font-size:15px}.home-v18 .home-header-actions{gap:2px}.home-v18 .home-header-actions .icon-button{min-width:28px;width:28px}
+ .home-v18 .home-links[data-layout=tiles] .home-resource-text strong{font-size:12px}
+}
+@media(max-height:520px){
+ .workspace .inspector-actions{max-height:45%;overflow:auto}.workspace .inspector-actions .inspector-action-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .workspace .sidebar-profile{min-height:44px;padding-block:6px}.workspace .sidebar-bottom{padding-block:4px}
+ .workspace .library-head{padding-block:8px}.workspace .library-heading{margin-bottom:8px}.workspace .library-heading h1{font-size:20px}
+ .workspace .pagination{padding-block:4px}
+ dialog[data-variant=settings]{height:calc(100dvh - 16px);max-height:calc(100dvh - 16px)}
+ dialog[data-variant=command]{margin:8px auto auto;max-height:calc(100dvh - 16px)}
+ .home-v18 .home-hero{padding-block:20px}.home-v18 h1{font-size:48px}.home-v18 .home-search{margin-top:14px}
+}
+@media(pointer:coarse){
+ .workspace .resources article>.icon-button,.workspace .resource-main{min-height:40px}
+ .workspace .sidebar .nav-entry,.workspace .sidebar .collection-select{min-height:40px}
+ .workspace .resources .drag-grip{display:none}.workspace .sort-hint{display:none}
+ .resource-menu button{min-height:40px}.workspace .inspector-action-grid button{min-height:40px}
+ .home-v18 .home-library-tools button,.home-v18 .home-tags button{min-height:36px}
+}
+
+/* Extremely short windows must retain a scrollable list even with batch tools open. */
+@media(max-height:420px){.workspace .library-head{max-height:55%;overflow:auto;overscroll-behavior:contain}.workspace .library-scroll{min-height:48px}.workspace .inspector-header{min-height:40px;padding-block:4px}.workspace .sidebar-profile{min-height:36px}.workspace .sidebar-bottom button{min-height:28px}.workspace .inspector-actions{max-height:48%}}
+@media(pointer:coarse){.workspace .resources.grid article:not(:has(>.drag-grip)) .resource-main,.workspace .resources.grid article:has(>.drag-grip) .resource-main{grid-column:2/-1}.workspace .resources.grid article{grid-template-columns:18px minmax(0,1fr) 32px}.workspace .resources.grid article>.icon-button:not(.resource-more){grid-column:2}.workspace .resources.grid article>.resource-more{grid-column:3}}
