@@ -93,3 +93,7 @@ dialog .settings-layout .settings{min-width:0}
 /* Extremely short windows must retain a scrollable list even with batch tools open. */
 @media(max-height:420px){.workspace .library-head{max-height:55%;overflow:auto;overscroll-behavior:contain}.workspace .library-scroll{min-height:48px}.workspace .inspector-header{min-height:40px;padding-block:4px}.workspace .sidebar-profile{min-height:36px}.workspace .sidebar-bottom button{min-height:28px}.workspace .inspector-actions{max-height:48%}}
 @media(pointer:coarse){.workspace .resources.grid article:not(:has(>.drag-grip)) .resource-main,.workspace .resources.grid article:has(>.drag-grip) .resource-main{grid-column:2/-1}.workspace .resources.grid article{grid-template-columns:18px minmax(0,1fr) 32px}.workspace .resources.grid article>.icon-button:not(.resource-more){grid-column:2}.workspace .resources.grid article>.resource-more{grid-column:3}}
+
+/* Sticky captions must not cover the first actionable row in short viewports. */
+.workspace .library-scroll{scroll-padding-top:36px}.workspace .list-caption{pointer-events:none}
+@media(max-height:520px){.workspace .list-caption{position:static}.workspace .library-scroll{scroll-padding-top:0}.workspace .library-head{flex-shrink:1;min-height:0;max-height:48%;overflow:auto}.workspace .library-scroll{min-height:64px}}

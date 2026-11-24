@@ -14,10 +14,10 @@ try{
  const noOverflow=async p=>assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'document horizontal overflow');
  const geom=async()=>page.evaluate(()=>{const rect=s=>{const r=document.querySelector(s).getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h:r.height,right:r.right,bottom:r.bottom};};return {header:rect('.workspace-header'),nav:rect('.workspace-nav'),library:rect('.library'),detail:rect('.resource-inspector'),scroll:rect('.library-scroll'),status:rect('.workspace-status'),search:rect('.library-search'),headerTools:rect('.header-tools')};});
  for(const [width,height,mode] of [[2560,1440,'wide'],[1600,900,'wide'],[1440,900,'desktop'],[1200,800,'desktop'],[1199,800,'desktop'],[1001,768,'desktop'],[1000,768,'tablet'],[768,1024,'tablet'],[651,800,'tablet'],[650,800,'phone'],[390,844,'phone'],[320,700,'phone'],[844,390,'tablet'],[568,320,'phone']]){
-  await page.setViewportSize({width,height});await page.locator('.workspace[data-mode='+mode+']').waitFor();await noOverflow(page);
+  console.log('Checking viewport',width,height,mode);await page.setViewportSize({width,height});await page.locator('.workspace[data-mode='+mode+']').waitFor();await noOverflow(page);
   let g=await geom();assert.ok(g.library.w>220&&g.scroll.h>40,'usable library at '+width+'x'+height);assert.ok(g.headerTools.right<=width+1,'header controls within viewport at '+width);assert.ok(g.status.bottom<=height+1);
   if(mode==='desktop'||mode==='wide'){assert.ok(g.nav.w>=160&&g.library.x>=g.nav.right-1);}
-  const first=page.locator('.resource-main').first();await first.click();await page.locator('.resource-inspector[data-visible=true][data-empty=false]').waitFor();g=await geom();
+  await page.locator('.library-scroll').evaluate(e=>e.scrollTop=0);const first=page.locator('.resource-main').first();await first.click();await page.locator('.resource-inspector[data-visible=true][data-empty=false]').waitFor();g=await geom();
   assert.ok(g.detail.right<=width+1&&g.detail.bottom<=height+1&&g.detail.w>=240,'inspector fits '+width+'x'+height);
   if(mode==='desktop'||mode==='wide'){assert.ok(g.library.right<=g.detail.x+1,'nonoverlap three panes');}
   else {assert.equal(await page.locator('.library').evaluate(e=>e.inert),true,'overlay blocks background');assert.ok(await page.getByRole('button',{name:'关闭详情',exact:true}).evaluate(e=>document.activeElement===e),'overlay focus');}
