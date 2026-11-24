@@ -1,5 +1,12 @@
 name: 正式版本完整验证与发布
 on:
+  # One-time, explicitly requested v2 release gate; normal PRs never run this workflow.
+  pull_request:
+    branches: [main]
+    paths: ['docs/releases/v2.0.0.md']
+  push:
+    branches: [main]
+    paths: ['docs/releases/v2.0.0.md']
   workflow_dispatch:
     inputs:
       publish:
@@ -13,6 +20,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   validate:
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push' || github.head_ref == 'release/fluxnav-v2'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -44,7 +52,16 @@ jobs:
         run: |
           npm install --no-save --package-lock=false --no-audit --no-fund playwright@1.58.2
           npx playwright install --with-deps chromium
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends fonts-noto-cjk
           node tests/browser.mjs
+          node tests/distribution.mjs
+          node tests/global-visual.mjs
+          node tests/design-system-visual.mjs
+          node tests/responsive-visual.mjs
+          node tests/workspace-visual.mjs
+          node tests/home-visual.mjs
+          node tests/motion-visual.mjs
       - name: 验证与打包发布产物
         run: |
           test -f dist/index.html
@@ -56,13 +73,14 @@ jobs:
           mkdir -p release
           cp dist-portable/index.html release/fluxnav-portable.html
           (cd extension && zip -r ../release/fluxnav-extension.zip .)
+          (cd release && sha256sum fluxnav-portable.html fluxnav-extension.zip > SHA256SUMS.txt)
       - uses: actions/upload-artifact@v4
         with:
           name: fluxnav-distribution
           path: release/
           if-no-files-found: error
   release:
-    if: inputs.publish && github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.publish))
     needs: validate
     runs-on: ubuntu-24.04
     permissions:
@@ -87,4 +105,10 @@ jobs:
             echo "::error::标签 $VERSION 已存在；为避免发布错误提交，请使用未占用的版本号"
             exit 1
           fi
-          gh release create "$VERSION" release/* --target "$GITHUB_SHA" --title "FluxNav $VERSION" --notes-file CHANGELOG.md
+          if [ "$GITHUB_EVENT_NAME" = push ] && [ "$VERSION" != v2.0.0 ]; then
+            echo "::error::本次自动发布仅允许 v2.0.0"
+            exit 1
+          fi
+          NOTES=CHANGELOG.md
+          if [ "$VERSION" = v2.0.0 ]; then NOTES=docs/releases/v2.0.0.md; fi
+          gh release create "$VERSION" release/* --target "$GITHUB_SHA" --title "FluxNav $VERSION" --notes-file "$NOTES"
