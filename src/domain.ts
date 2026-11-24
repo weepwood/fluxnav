@@ -192,3 +192,8 @@ export function reorderBookmark(library:Library,source:string,target:string,side
  const ranks=new Map(next.map((x,i)=>[x.id,(i+1)*1024]));
  return {...library,bookmarks:library.bookmarks.map(x=>ranks.has(x.id)&&ranks.get(x.id)!==x.order?{...x,order:ranks.get(x.id),updatedAt:Math.max(now,x.updatedAt+1)}:x)};
 }
+
+/** Direct-origin favicon only; no external lookup service or bookmark path disclosure. */
+export function faviconUrl(url:string){
+ try{const u=new URL(normalizeUrl(url));return u.protocol==='https:'?u.origin+'/favicon.ico':null;}catch{return null;}
+}
