@@ -15,12 +15,13 @@ export function Workspace({bookmarks,query,setQuery,sort,setSort,open,edit,patch
  const collections=useMemo(()=>[...new Set(live.map(b=>b.collection).filter(Boolean))].sort(),[live]);
  const tags=useMemo(()=>[...new Set(live.flatMap(b=>b.tags))].sort(),[live]);
  const duplicates=useMemo(()=>new Set(duplicateGroups(bookmarks).flatMap(g=>g.map(b=>b.id))),[bookmarks]);
- const items=useMemo(()=>searchBookmarks(bookmarks.filter(b=>{
+ const candidates=useMemo(()=>bookmarks.filter(b=>{
  if(filter==='trash')return b.deleted;
  if(b.deleted)return false;
  if(filter==='archive')return b.archived;
  if(b.archived&&filter!=='duplicates')return false;
- return (!collection||b.collection===collection)&&(!tag||b.tags.includes(tag))&&(filter==='all'||filter==='favorite'&&b.favorite||filter==='recent'&&b.lastVisited>0||filter==='inbox'&&!b.collection||filter==='duplicates'&&duplicates.has(b.id));}),deferred,sort),[bookmarks,filter,collection,tag,deferred,sort,duplicates]);
+ return (!collection||b.collection===collection)&&(!tag||b.tags.includes(tag))&&(filter==='all'||filter==='favorite'&&b.favorite||filter==='recent'&&b.lastVisited>0||filter==='inbox'&&!b.collection||filter==='duplicates'&&duplicates.has(b.id));}),[bookmarks,filter,collection,tag,duplicates]);
+ const items=useMemo(()=>searchBookmarks(candidates,deferred,sort),[candidates,deferred,sort]);
  const detail=items.find(b=>b.id===selected);const size=appearance.pageSize;const max=Math.max(1,Math.ceil(items.length/size));const current=Math.min(page,max);
  const selectFilter=(f:Filter,c='',t='')=>{setBatchMode(null);setFilter(f);setCollection(c);setTag(t);setPage(1);setChecked([]);setSelected('');};
  const filters:[Filter,string][]=[['all','全部资源'],['favorite','收藏'],['recent','最近访问'],['inbox','待整理'],['duplicates','重复资源'],['archive','归档'],['trash','回收站']];
