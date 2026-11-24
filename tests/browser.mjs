@@ -52,6 +52,15 @@ try{
   await page.getByLabel('选择书签文件').setInputFiles({name:'bookmarks.html',mimeType:'text/html',buffer:Buffer.from(html)});
   await page.getByRole('button',{name:'确认导入'}).click();
   await page.getByRole('button',{name:'Design / Icons',exact:true}).waitFor();
+  await page.getByRole('button',{name:/全部资源/}).first().click();
+  await page.getByRole('button',{name:'导入书签'}).click();
+  await page.getByLabel('选择书签文件').setInputFiles({name:'partial.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify([{url:'https://keep.example',title:'Keep import'},{url:'https://exclude.example',title:'Exclude import'},{url:'javascript:alert(1)'}]))});
+  await page.getByRole('checkbox',{name:/Exclude import/}).uncheck();
+  await page.getByRole('button',{name:'确认导入'}).click();
+  await page.getByRole('button',{name:/Keep import/}).first().waitFor();
+  assert.equal(await page.getByRole('checkbox',{name:'选择 Exclude import'}).count(),0);
+  await page.getByRole('button',{name:'撤销',exact:true}).click();
+  await page.getByRole('checkbox',{name:'选择 Keep import'}).waitFor({state:'detached'});
   await page.getByRole('button',{name:'设置 / 同步'}).click();
   await page.getByRole('button',{name:'深色',exact:true}).click();
   assert.equal(await page.locator('html').getAttribute('data-theme'),'dark');
