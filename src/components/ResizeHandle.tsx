@@ -1,6 +1,7 @@
-import {useRef} from 'react';
+import {useEffect,useRef} from 'react';
 export function ResizeHandle({label,value,min,max,onChange,reverse=false}:{label:string;value:number;min:number;max:number;onChange:(v:number)=>void;reverse?:boolean}){
  const drag=useRef<{x:number;width:number;next:number;root:HTMLElement|null}|null>(null);
+ useEffect(()=>()=>{const current=drag.current;if(current){current.root?.style.setProperty(reverse?'--detail-width':'--sidebar-width',current.width+'px');current.root?.removeAttribute('data-resizing');drag.current=null;}},[reverse]);
  const clamp=(n:number)=>Math.min(max,Math.max(min,Math.round(n)));
  const property=reverse?'--detail-width':'--sidebar-width';
  const finish=(commit:boolean)=>{const current=drag.current;if(!current)return;drag.current=null;current.root?.style.setProperty(property,(commit?current.next:current.width)+'px');current.root?.removeAttribute('data-resizing');if(commit&&current.next!==current.width)onChange(current.next);};

@@ -1,0 +1,87 @@
+/* Shared motion tokens: no global transition:all, and no animation during live resizing. */
+:root{--motion-fast:100ms;--motion-normal:160ms;--motion-pane:220ms;--motion-out:120ms;--ease-standard:cubic-bezier(.2,0,0,1);--ease-enter:cubic-bezier(.16,1,.3,1);--ease-exit:cubic-bezier(.4,0,1,1)}
+button{transition:background var(--motion-fast) var(--ease-standard),border-color var(--motion-fast) var(--ease-standard),color var(--motion-fast) var(--ease-standard),opacity var(--motion-fast) var(--ease-standard)}
+button:active:not(:disabled):not(.resize-handle){filter:brightness(.97)}
+:root[data-theme=dark] button:active:not(:disabled){filter:brightness(1.07)}
+@keyframes flux-page-in{from{opacity:.65}to{opacity:1}}
+.home-v18,.workspace{animation:flux-page-in var(--motion-normal) var(--ease-enter) both}
+/* Keep the same grid track count at every state. Explicit grid placement avoids auto-placement jumps. */
+@media(min-width:651px){
+ .workspace-body{--nav-track:var(--rail-width);--left-divider:0px;--right-divider:0px;--inspector-track:0px}
+ .workspace-body,.workspace-body[data-sidebar=true],.workspace-body[data-details=true],.workspace-body[data-sidebar=true][data-details=true]{grid-template-columns:var(--nav-track) var(--left-divider) minmax(0,1fr) var(--right-divider) var(--inspector-track);transition:grid-template-columns var(--motion-pane) var(--ease-standard)}
+ .workspace-body[data-sidebar=true]{--nav-track:184px}
+ .workspace-body[data-details=true]{--inspector-track:290px}
+ .workspace-body>.workspace-nav{grid-column:1;grid-row:1}
+ .workspace-body>.resize-handle[aria-label="调整左侧栏宽度"]{grid-column:2;grid-row:1}
+ .workspace-body>.library{grid-column:3;grid-row:1}
+ .workspace-body>.resize-handle[aria-label="调整右侧栏宽度"]{grid-column:4;grid-row:1}
+ .workspace-body>.resource-inspector{grid-column:5;grid-row:1}
+ .workspace .resource-inspector{transition:opacity var(--motion-normal) var(--ease-standard),visibility 0s;min-width:0}
+ .workspace .resource-inspector[data-visible=false]{opacity:0;visibility:hidden;pointer-events:none;transition:opacity var(--motion-out),visibility 0s var(--motion-out)}
+ .workspace .workspace-nav{overflow:hidden}
+ .workspace-nav .sidebar-profile,.workspace-nav[data-expanded=false] .sidebar-profile{min-height:61px;margin:0 9px;padding:12px 1px;justify-content:flex-start;gap:8px;overflow:hidden;white-space:nowrap}
+ .workspace-nav .sidebar-profile .workspace-avatar{flex:0 0 32px}
+ .workspace-nav .sidebar-profile>div,.workspace-nav[data-expanded=false] .sidebar-profile>div{display:grid;min-width:112px;flex:none;overflow:hidden}
+ .workspace-nav .sidebar-scroll,.workspace-nav[data-expanded=false] .sidebar-scroll{padding:7px 6px 12px;scrollbar-gutter:auto}
+ .workspace-nav .sidebar-group .eyebrow,.workspace-nav[data-expanded=false] .sidebar-group .eyebrow{display:block;min-height:16px;white-space:nowrap;margin:5px 7px}
+ .workspace-nav .nav-entry,.workspace-nav[data-expanded=false] .nav-entry{width:100%;min-height:34px;height:34px;justify-content:flex-start;padding:5px 9px;gap:0;overflow:hidden;position:relative}
+ .workspace-nav .nav-entry .nav-label,.workspace-nav[data-expanded=false] .nav-entry .nav-label{flex:0 0 auto;min-width:0;gap:9px;justify-content:flex-start;white-space:nowrap}
+ .workspace-nav .nav-entry .nav-label svg{flex:0 0 16px;width:16px;height:16px}
+ .workspace-nav .nav-entry .nav-label>span,.workspace-nav[data-expanded=false] .nav-entry .nav-label>span{display:block;white-space:nowrap;max-width:calc(var(--sidebar-width,208px) - 88px);overflow:hidden;text-overflow:ellipsis}
+ .workspace-nav .nav-entry small,.workspace-nav[data-expanded=false] .nav-entry small{display:block;position:absolute;right:7px;white-space:nowrap;max-width:42px;overflow:hidden;text-overflow:ellipsis}
+ .workspace-nav[data-expanded=true] .nav-entry .nav-label{flex:1;min-width:0;padding-right:40px}
+ .workspace-nav .sidebar-bottom,.workspace-nav[data-expanded=false] .sidebar-bottom{padding:8px 6px}
+ .workspace-nav .sidebar-bottom button,.workspace-nav[data-expanded=false] .sidebar-bottom button{justify-content:flex-start;padding:6px 9px;gap:9px;height:32px;min-height:32px;white-space:nowrap;overflow:hidden}
+ .workspace-nav .sidebar-bottom button svg{flex:0 0 16px;width:16px;height:16px}
+ .workspace-nav .sidebar-bottom button>span,.workspace-nav[data-expanded=false] .sidebar-bottom button>span{display:block;white-space:nowrap}
+ .workspace-nav .sidebar-profile>div,.workspace-nav .sidebar-group .eyebrow,.workspace-nav .nav-entry .nav-label>span,.workspace-nav .nav-entry small,.workspace-nav .sidebar-bottom button>span{opacity:1;visibility:visible;transition:opacity var(--motion-normal) var(--ease-standard),visibility 0s;transition-delay:55ms,0s}
+ .workspace-nav[data-expanded=false] .sidebar-profile>div,.workspace-nav[data-expanded=false] .sidebar-group .eyebrow,.workspace-nav[data-expanded=false] .nav-entry .nav-label>span,.workspace-nav[data-expanded=false] .nav-entry small,.workspace-nav[data-expanded=false] .sidebar-bottom button>span{opacity:0;visibility:hidden;transition:opacity var(--motion-fast),visibility 0s var(--motion-fast);transition-delay:0s,var(--motion-fast)}
+ .workspace-nav .sidebar-categories{opacity:1;transition:opacity var(--motion-normal) var(--ease-standard);transition-delay:55ms}
+ .workspace-nav[data-expanded=false] .sidebar-categories{display:block;height:0;overflow:hidden;opacity:0;visibility:hidden;pointer-events:none}
+ .workspace[data-resizing] .workspace-body{transition:none}
+}
+@media(min-width:1001px){.workspace-body[data-sidebar=true]{--nav-track:208px}}
+@media(min-width:1200px){
+ .workspace-body[data-sidebar=true]{--nav-track:var(--sidebar-width,208px);--left-divider:5px}
+ .workspace-body[data-details=true]{--inspector-track:var(--detail-width,290px);--right-divider:5px}
+}
+@media(min-width:651px) and (max-width:1000px){.workspace-body[data-details=true]{--inspector-track:0px}.workspace .resource-inspector{position:absolute;transform:translateX(0);transition:transform var(--motion-pane) var(--ease-standard),opacity var(--motion-normal),visibility 0s}.workspace .resource-inspector[data-visible=false]{transform:translateX(100%);opacity:0;visibility:hidden;transition:transform var(--motion-pane) var(--ease-standard),opacity var(--motion-out),visibility 0s var(--motion-pane)}}
+@media(max-width:650px){
+ .workspace .workspace-nav[data-expanded=false],.workspace .workspace-nav[data-expanded=true]{display:flex;position:absolute;top:var(--header-height);bottom:27px;left:0;z-index:6;width:min(285px,84vw);height:auto;box-shadow:8px 0 30px #0003;transition:transform var(--motion-pane) var(--ease-standard),visibility 0s}
+ .workspace .workspace-nav[data-expanded=false]{transform:translateX(-105%);visibility:hidden;pointer-events:none;transition:transform var(--motion-pane) var(--ease-standard),visibility 0s var(--motion-pane)}
+ .workspace .workspace-nav[data-expanded=true]{transform:translateX(0);visibility:visible}
+ .workspace .workspace-nav[data-expanded=false] .sidebar-profile>div,.workspace .workspace-nav[data-expanded=false] .sidebar-group .eyebrow,.workspace .workspace-nav[data-expanded=false] .sidebar-categories,.workspace .workspace-nav[data-expanded=false] .nav-entry .nav-label>span,.workspace .workspace-nav[data-expanded=false] .nav-entry small,.workspace .workspace-nav[data-expanded=false] .sidebar-bottom button>span{display:revert}
+ .workspace .workspace-nav[data-expanded=false] .sidebar-profile{justify-content:flex-start;margin:0 10px;padding:14px 3px}.workspace .workspace-nav[data-expanded=false] .sidebar-scroll{padding:7px 9px 12px}.workspace .workspace-nav[data-expanded=false] .nav-entry{width:100%;min-height:32px;justify-content:space-between;padding:5px 7px}.workspace .workspace-nav[data-expanded=false] .nav-entry .nav-label{flex:1;justify-content:flex-start}.workspace .workspace-nav[data-expanded=false] .sidebar-bottom{padding:8px 9px}.workspace .workspace-nav[data-expanded=false] .sidebar-bottom button{justify-content:flex-start;padding:6px 8px}
+ .workspace .resource-inspector{transform:translateX(0);transition:transform var(--motion-pane) var(--ease-standard),opacity var(--motion-normal),visibility 0s}
+ .workspace .resource-inspector[data-visible=false]{transform:translateX(100%);opacity:0;visibility:hidden;pointer-events:none;transition:transform var(--motion-pane) var(--ease-standard),opacity var(--motion-out),visibility 0s var(--motion-pane)}
+}
+@media(max-width:1000px){
+ .workspace .detail-scrim:not([hidden]),.workspace .sidebar-scrim:not([hidden]){animation:flux-scrim-in var(--motion-normal) var(--ease-standard) both}
+}
+@keyframes flux-scrim-in{from{opacity:0}to{opacity:1}}
+/* Native dialog retains its top-layer and focus semantics; only visual dismissal is delayed. */
+@keyframes flux-dialog-in{from{opacity:0;transform:translateY(7px) scale(.99)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes flux-dialog-out{from{opacity:1;transform:translateY(0) scale(1)}to{opacity:0;transform:translateY(4px) scale(.995)}}
+@keyframes flux-backdrop-in{from{opacity:0}to{opacity:1}}
+@keyframes flux-backdrop-out{from{opacity:1}to{opacity:0}}
+dialog[open]{animation:flux-dialog-in var(--motion-normal) var(--ease-enter) both;transform-origin:50% 40%}
+dialog[open]::backdrop{animation:flux-backdrop-in var(--motion-normal) var(--ease-standard) both}
+dialog[open][data-closing=true]{animation:flux-dialog-out var(--motion-out) var(--ease-exit) both}
+dialog[open][data-closing=true]::backdrop{animation:flux-backdrop-out var(--motion-out) var(--ease-exit) both}
+@keyframes flux-section-in{from{opacity:.55;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}
+.settings-section:not([hidden]){animation:flux-section-in var(--motion-normal) var(--ease-enter) both}
+.settings-layout .settings{scrollbar-gutter:stable}
+.resource-menu{animation:flux-dialog-in var(--motion-fast) var(--ease-enter) both;transform-origin:top left}
+.resources article,.home-resource{transition:background var(--motion-fast) var(--ease-standard),border-color var(--motion-fast) var(--ease-standard),box-shadow var(--motion-fast) var(--ease-standard)}
+.resources article[data-dragging=true]{opacity:.55;cursor:grabbing}
+.workspace-body[data-drag-active=true] .collection-row{transition:background var(--motion-fast),outline-color var(--motion-fast)}
+.collection-row[data-drop=true]{outline:1px solid var(--focus);outline-offset:-1px;background:var(--selection)}
+.resources article[data-drop]{position:relative}
+.resources.list article[data-drop=before]{box-shadow:inset 0 2px var(--focus)}
+.resources.list article[data-drop=after]{box-shadow:inset 0 -2px var(--focus)}
+.resources.grid article[data-drop=before]{box-shadow:inset 3px 0 var(--focus)}
+.resources.grid article[data-drop=after]{box-shadow:inset -3px 0 var(--focus)}
+.resources.grid article[data-drop]{border-top-color:var(--line);border-bottom-color:var(--line)}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+@media(min-width:651px){.workspace-nav .nav-entry .nav-label>span{min-width:0}.workspace-nav[data-expanded=false] .nav-entry .nav-label>span{flex:none}.workspace-nav .sidebar-profile>div{min-width:0}.workspace-nav[data-expanded=false] .sidebar-profile>div{min-width:112px}.workspace .resource-inspector[data-visible=false] .inspector-scroll{overflow:hidden}}

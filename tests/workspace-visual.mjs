@@ -6,7 +6,7 @@ const server=spawn('npm',['run','dev','--','--host','127.0.0.1','--port','4174',
 let browser;
 try{
  let ready=false;for(let i=0;i<80;i++){try{if((await fetch('http://127.0.0.1:4174/')).ok){ready=true;break;}}catch{}await new Promise(r=>setTimeout(r,200));}assert.ok(ready,'server ready');
- browser=await chromium.launch({headless:true});const page=await browser.newPage({viewport:{width:1440,height:900},deviceScaleFactor:1});
+ browser=await chromium.launch({headless:true});const page=await browser.newPage({viewport:{width:1440,height:900},deviceScaleFactor:1,reducedMotion:'reduce'});
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  const records=Array.from({length:96},(_,i)=>({id:'demo-'+i,url:'https://resource'+i+'.example/',title:i===0?'A long resource title for checking truncation and layout':i===1?'BoardUI · Design system':'Resource '+String(i).padStart(2,'0'),description:i===0?'A local visual test description.':'A useful saved website.',notes:i===0?'Notes on UI design, spacing and interaction.':'',tags:['Design','UI','React','Tag '+i],collection:'Design / '+(i%3===0?'Components':i%3===1?'Inspiration':'Tools'),addedAt:Date.UTC(2026,0,1)+i*86400000,updatedAt:Date.UTC(2026,0,1)+i*86400000,lastVisited:0,visitCount:0,favorite:i%7===0,pinned:i===0,archived:false,deleted:false}));
  // Seed only the browser's isolated test storage to keep screenshots free of import toasts.

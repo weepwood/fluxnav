@@ -6,7 +6,7 @@ const server=spawn('npm',['run','dev','--','--host','127.0.0.1','--port','4175',
 let browser;
 try{
  let ready=false;for(let i=0;i<80;i++){try{if((await fetch('http://127.0.0.1:4175/')).ok){ready=true;break;}}catch{}await new Promise(r=>setTimeout(r,200));}assert.ok(ready);
- browser=await chromium.launch({headless:true});const page=await browser.newPage({viewport:{width:1440,height:900},deviceScaleFactor:1});
+ browser=await chromium.launch({headless:true});const page=await browser.newPage({viewport:{width:1440,height:900},deviceScaleFactor:1,reducedMotion:'reduce'});
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  const names=['GitHub','Figma','BoardUI','Reka UI','Vercel','Linear','Notion','React','Vue','Cloudflare','MDN Web Docs','TypeScript','Tailwind CSS','Motion','Radix UI','shadcn/ui'];
  const hosts=['github.com','figma.com','boardui.com','reka-ui.com','vercel.com','linear.app','notion.so','react.dev','vuejs.org','cloudflare.com','developer.mozilla.org','typescriptlang.org','tailwindcss.com','motion.dev','radix-ui.com','ui.shadcn.com'];
