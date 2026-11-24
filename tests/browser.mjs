@@ -67,9 +67,11 @@ try{
   await page.getByRole('button',{name:'开发收藏',exact:true}).waitFor();
   await page.getByRole('button',{name:/全部资源/}).first().click();
   await page.getByRole('button',{name:'导入书签'}).click();
-  const backup={schemaVersion:1,bookmarks:[{id:'dup-1',url:'https://dupe.example.com/#a',title:'Dupe A',tags:['one'],addedAt:1,updatedAt:1},{id:'dup-2',url:'https://dupe.example.com/#b',title:'Dupe B',tags:['two'],addedAt:1,updatedAt:1}]};
+  const base={description:'',notes:'',collection:'',addedAt:1,updatedAt:1,lastVisited:0,visitCount:0,favorite:false,pinned:false,archived:false,deleted:false};
+  const backup={schemaVersion:1,bookmarks:[{...base,id:'dup-1',url:'https://dupe.example.com/#a',title:'Dupe A',tags:['one']},{...base,id:'dup-2',url:'https://dupe.example.com/#b',title:'Dupe B',tags:['two']}]};
   await page.getByLabel('选择书签文件').setInputFiles({name:'duplicate.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(backup))});
   await page.getByLabel('导入方式').selectOption('restore');
+  await page.getByRole('checkbox',{name:/我确认按版本更新记录/}).check();
   await page.getByRole('button',{name:'确认导入'}).click();
   await page.getByRole('button',{name:'重复资源',exact:true}).click();
   await page.getByRole('button',{name:'合并重复资源',exact:true}).click();

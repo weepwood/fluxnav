@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {normalizeUrl,parseBookmark,parseLibrary,mergeLibraries,addUnique,emptyLibrary,searchBookmarks,exportHtml,patchBookmarks,appendTags,sameLibrary,duplicateGroups,mergeDuplicates,renameCollection,collectionTree,inCollection,renameCollectionTree,reorderBookmark,faviconUrl} from '../src/domain.ts';
+import {normalizeUrl,parseBookmark,parseLibrary,mergeLibraries,addUnique,emptyLibrary,searchBookmarks,exportHtml,patchBookmarks,appendTags,sameLibrary,duplicateGroups,mergeDuplicates,renameCollection,collectionTree,inCollection,renameCollectionTree,reorderBookmark,faviconUrl,chooseBookmark} from '../src/domain.ts';
 const make = (id:string,url='https://example.com',extra={}) => parseBookmark({id,url,title:id,addedAt:1,updatedAt:1,...extra});
 test('reject dangerous URL protocols and credentials',()=>{for(const u of ['javascript:alert(1)','data:text/html,x','https://user:pass@example.com','file:///tmp/a','   ']) assert.throws(()=>normalizeUrl(u)); assert.equal(normalizeUrl('example.com'),'https://example.com/');});
 test('legacy import, invalid schema and ID validation',()=>{assert.equal(parseLibrary([make('a')]).schemaVersion,1);assert.throws(()=>parseLibrary({schemaVersion:2,bookmarks:[]}));assert.throws(()=>parseLibrary([make('a'),make('a')]));assert.throws(()=>parseLibrary([{url:'https://a.com',title:'a',tags:'bad'}]));});
@@ -49,3 +49,5 @@ test('manual ordering persists through parsing and protects pinned groups',()=>{
 });
 
 test('favicon URL exposes only HTTPS origin, never query or credentials',()=>{assert.equal(faviconUrl('https://example.com/private?q=secret#x'),'https://example.com/favicon.ico');assert.equal(faviconUrl('http://example.com'),null);assert.equal(faviconUrl('https://user:pass@example.com'),null);});
+
+test('per-record merge preserves unchanged identity and deterministic deletion',()=>{const a=make('a'),b={...a};assert.equal(chooseBookmark(a,b),a);assert.equal(chooseBookmark(a,{...a,updatedAt:0}),a);const tomb={...a,deleted:true};assert.equal(chooseBookmark(a,tomb),tomb);assert.equal(chooseBookmark(tomb,a),tomb);});

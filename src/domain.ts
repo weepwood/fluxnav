@@ -43,13 +43,18 @@ export function parseLibrary(raw: unknown): Library {
   if (new Set(bookmarks.map(b => b.id)).size !== bookmarks.length) throw Error('存在重复书签 ID');
   return { schemaVersion: 1, bookmarks };
 }
+export function chooseBookmark(prev:Bookmark|undefined,b:Bookmark):Bookmark{
+ if(!prev)return b;if(prev===b)return prev;
+ if(b.updatedAt>prev.updatedAt)return b;
+ if(b.updatedAt<prev.updatedAt)return prev;
+ if(b.deleted!==prev.deleted)return b.deleted?b:prev;
+ return JSON.stringify(b)>JSON.stringify(prev)?b:prev;
+}
 export function mergeLibraries(local: Library, remote: Library): Library {
   const records = new Map(local.bookmarks.map(b => [b.id,b]));
   for (const b of remote.bookmarks) {
     const prev = records.get(b.id);
-    // Stable tie-break, including deletion, so merge is deterministic.
-    if (prev===b)continue;
-    if (!prev || b.updatedAt > prev.updatedAt || (b.updatedAt === prev.updatedAt && (Number(b.deleted) > Number(prev.deleted) || (b.deleted === prev.deleted && JSON.stringify(b) > JSON.stringify(prev))))) records.set(b.id,b);
+    records.set(b.id,chooseBookmark(prev,b));
   }
   return { schemaVersion: 1, bookmarks: [...records.values()].sort((a,b) => a.id.localeCompare(b.id)) };
 }
@@ -64,7 +69,7 @@ export function addUnique(library: Library, items: Bookmark[]) {
     const item = { ...b, id: ids.has(b.id) ? newId() : b.id, updatedAt: Date.now() };
     ids.add(item.id); added.push(item);
   }
-  return { library: { ...library, bookmarks: [...library.bookmarks, ...added] }, added: added.length };
+  return { library: added.length?{ ...library, bookmarks: [...library.bookmarks, ...added] }:library, added: added.length };
 }
 // Cache immutable record projections; each keystroke reuses normalized text.
 const normalizeSearch=(s:string)=>s.normalize('NFKC').toLowerCase().normalize('NFD').replace(/\p{M}/gu,'');
@@ -100,6 +105,7 @@ export function searchBookmarks(list: Bookmark[], query: string, sort: Sort) {
 export function sameLibrary(a:Library,b:Library){
  if(a===b)return true;
  if(a.bookmarks.length!==b.bookmarks.length)return false;
+ if(a.bookmarks.every((x,i)=>x===b.bookmarks[i]))return true;
  const index=new Map(a.bookmarks.map(x=>[x.id,x]));
  return b.bookmarks.every(x=>{const prev=index.get(x.id);return prev===x||(prev?.updatedAt===x.updatedAt&&JSON.stringify(prev)===JSON.stringify(x));});
 }
