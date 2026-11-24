@@ -7,7 +7,7 @@ export function AppearanceSettings({value,onChange}:{value:Appearance;onChange:(
 }
 export function HomeAppearanceSettings({value,onChange}:{value:Appearance;onChange:(v:Appearance)=>void}){
  const [title,setTitle]=useState(value.homeTitle),[subtitle,setSubtitle]=useState(value.homeSubtitle);
- const update=<K extends keyof HomeAppearance>(key:K,next:HomeAppearance[K])=>onChange({...value,[key]:next});
+ const update=<K extends keyof HomeAppearance,>(key:K,next:HomeAppearance[K])=>onChange({...value,[key]:next});
  const commitTitle=()=>{const next=title.trim()||defaultHomeAppearance.homeTitle;setTitle(next);update('homeTitle',next);};
  const commitSubtitle=()=>{const next=subtitle.trim()||defaultHomeAppearance.homeSubtitle;setSubtitle(next);update('homeSubtitle',next);};
  return <div className="home-appearance-settings">
