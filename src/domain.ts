@@ -2,10 +2,10 @@ export type Bookmark = {
   id: string; url: string; title: string; description: string; notes: string;
   tags: string[]; collection: string; addedAt: number; updatedAt: number;
   lastVisited: number; visitCount: number; favorite: boolean; pinned: boolean;
-  archived: boolean; deleted: boolean;
+  archived: boolean; deleted: boolean; order?: number;
 };
 export type Library = { schemaVersion: 1; bookmarks: Bookmark[] };
-export type Sort = 'recent' | 'added' | 'visits' | 'title' | 'relevance';
+export type Sort = 'recent' | 'added' | 'visits' | 'title' | 'relevance' | 'manual';
 export const emptyLibrary = (): Library => ({ schemaVersion: 1, bookmarks: [] });
 const str = (v: unknown, max = 10000) => typeof v === 'string' ? v.trim().slice(0,max) : '';
 const time = (v: unknown, fallback = 0) => typeof v === 'number' && Number.isFinite(v) && v >= 0 ? v : fallback;
@@ -32,7 +32,7 @@ export function parseBookmark(raw: unknown): Bookmark {
     tags: [...new Set((x.tags as string[] | undefined ?? []).map(t => str(t, 100)).filter(Boolean))].slice(0, 100),
     collection: str(x.collection, 150), addedAt, updatedAt: time(x.updatedAt, addedAt),
     lastVisited: time(x.lastVisited), visitCount: Math.floor(time(x.visitCount)),
-    favorite: x.favorite === true, pinned: x.pinned === true, archived: x.archived === true, deleted: x.deleted === true };
+    favorite: x.favorite === true, pinned: x.pinned === true, archived: x.archived === true, deleted: x.deleted === true, ...(typeof x.order==='number'&&Number.isSafeInteger(x.order)&&x.order>=0?{order:x.order}:{}) };
 }
 export function parseLibrary(raw: unknown): Library {
   const obj = raw as {schemaVersion?: unknown; bookmarks?: unknown};
@@ -95,7 +95,7 @@ export function searchBookmarks(list: Bookmark[], query: string, sort: Sort) {
   }}
   if(ok)matches.push({b,score});
  }
- return matches.sort((a,b)=>(sort==='relevance'&&terms.length?b.score-a.score:0)||Number(b.b.pinned)-Number(a.b.pinned)||(sort==='title'?a.b.title.localeCompare(b.b.title,'zh-CN'):sort==='added'?b.b.addedAt-a.b.addedAt:sort==='visits'?b.b.visitCount-a.b.visitCount:b.b.lastVisited-a.b.lastVisited)||a.b.id.localeCompare(b.b.id)).map(x=>x.b);
+ return matches.sort((a,b)=>(sort==='relevance'&&terms.length?b.score-a.score:0)||Number(b.b.pinned)-Number(a.b.pinned)||(sort==='manual'?(a.b.order??Number.MAX_SAFE_INTEGER)-(b.b.order??Number.MAX_SAFE_INTEGER)||b.b.addedAt-a.b.addedAt:sort==='title'?a.b.title.localeCompare(b.b.title,'zh-CN'):sort==='added'?b.b.addedAt-a.b.addedAt:sort==='visits'?b.b.visitCount-a.b.visitCount:b.b.lastVisited-a.b.lastVisited)||a.b.id.localeCompare(b.b.id)).map(x=>x.b);
 }
 export function sameLibrary(a:Library,b:Library){
  if(a===b)return true;
@@ -125,9 +125,11 @@ export function parseHtmlBookmarks(html: string): Bookmark[] {
 }
 export function exportHtml(list: Bookmark[]) {
  const esc=(s:string)=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
- const groups=new Map<string,Bookmark[]>();for(const b of list){if(b.deleted)continue;const arr=groups.get(b.collection)||[];arr.push(b);groups.set(b.collection,arr);}
+ const tree=collectionTree(list.filter(b=>!b.deleted));
  const link=(b:Bookmark)=>'<DT><A HREF="'+esc(b.url)+'" ADD_DATE="'+Math.floor(b.addedAt/1000)+'">'+esc(b.title)+'</A>';
- const body=[...groups].map(([name,items])=>name?'<DT><H3>'+esc(name)+'</H3>\n<DL><p>\n'+items.map(link).join('\n')+'\n</DL><p>':items.map(link).join('\n')).join('\n');
+ const byPath=new Map<string,Bookmark[]>();for(const b of list){if(b.deleted)continue;const group=byPath.get(b.collection)||[];group.push(b);byPath.set(b.collection,group);}
+ const render=(node:CollectionNode):string=>'<DT><H3>'+esc(node.name)+'</H3>\n<DL><p>\n'+[...(byPath.get(node.path)||[]).map(link),...node.children.map(render)].join('\n')+'\n</DL><p>';
+ const body=[...(byPath.get('')||[]).map(link),...tree.map(render)].join('\n');
  return '<!DOCTYPE NETSCAPE-Bookmark-file-1>\n<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">\n<TITLE>FluxNav</TITLE>\n<H1>FluxNav</H1>\n<DL><p>\n'+body+'\n</DL><p>';
 }
 
@@ -156,4 +158,42 @@ export function renameCollection(library:Library,from:string,to:string,now=Date.
  if(!from||from===target)throw Error('请输入不同的收藏集名称');
  const ids=library.bookmarks.filter(b=>!b.deleted&&b.collection===from).map(b=>b.id);
  return patchBookmarks(library,ids,{collection:target},now);
+}
+
+export const collectionSeparator=' / ';
+export const inCollection=(value:string,path:string)=>value===path||value.startsWith(path+collectionSeparator);
+export type CollectionNode={name:string;path:string;count:number;children:CollectionNode[]};
+export function collectionTree(bookmarks:Bookmark[]):CollectionNode[]{
+ const roots:CollectionNode[]=[];const nodes=new Map<string,CollectionNode>();
+ for(const b of bookmarks){if(b.deleted||!b.collection)continue;const parts=b.collection.split(collectionSeparator);let parent:CollectionNode|undefined;let path='';
+  for(let i=0;i<parts.length;i++){path=i?path+collectionSeparator+parts[i]:parts[i];let node=nodes.get(path);
+   if(!node){node={name:parts[i],path,count:0,children:[]};nodes.set(path,node);(parent?parent.children:roots).push(node);}
+   node.count++;parent=node;
+  }
+ }
+ const sort=(items:CollectionNode[])=>{items.sort((a,b)=>a.name.localeCompare(b.name,'zh-CN'));for(const n of items)sort(n.children);};sort(roots);return roots;
+}
+export function renameCollectionTree(library:Library,from:string,to:string,now=Date.now()):Library{
+ const target=to.trim();if(!from||target===from)throw Error('请输入不同的收藏集路径');
+ if(target&&inCollection(target,from))throw Error('不能将收藏集移动到自身的子级');
+ const affected=library.bookmarks.filter(b=>!b.deleted&&inCollection(b.collection,from));
+ if(!affected.length)throw Error('收藏集不存在');
+ const changes=new Map(affected.map(b=>{const suffix=b.collection.slice(from.length);return [b.id,target?target+suffix:suffix.startsWith(collectionSeparator)?suffix.slice(collectionSeparator.length):''];}));
+ if([...changes.values()].some(p=>p.length>150))throw Error('移动后收藏集路径超过 150 字符');
+ return {...library,bookmarks:library.bookmarks.map(b=>changes.has(b.id)?{...b,collection:changes.get(b.id)!,updatedAt:Math.max(now,b.updatedAt+1)}:b)};
+}
+export function reorderBookmark(library:Library,source:string,target:string,side:'before'|'after',now=Date.now()):Library{
+ if(source===target)return library;
+ const active=library.bookmarks.filter(b=>!b.deleted&&!b.archived),a=active.find(b=>b.id===source),b=active.find(b=>b.id===target);
+ if(!a||!b||a.pinned!==b.pinned)throw Error('只能在同一置顶分组内排序');
+ const ordered=searchBookmarks(active.filter(x=>x.pinned===a.pinned),'','manual');
+ const next=ordered.filter(x=>x.id!==source);const index=next.findIndex(x=>x.id===target);next.splice(index+(side==='after'?1:0),0,a);
+ if(next.every((x,i)=>x.id===ordered[i].id))return library;
+ const ranks=new Map(next.map((x,i)=>[x.id,(i+1)*1024]));
+ return {...library,bookmarks:library.bookmarks.map(x=>ranks.has(x.id)&&ranks.get(x.id)!==x.order?{...x,order:ranks.get(x.id),updatedAt:Math.max(now,x.updatedAt+1)}:x)};
+}
+
+/** Direct-origin favicon only; no external lookup service or bookmark path disclosure. */
+export function faviconUrl(url:string){
+ try{const u=new URL(normalizeUrl(url));return u.protocol==='https:'?u.origin+'/favicon.ico':null;}catch{return null;}
 }

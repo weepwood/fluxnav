@@ -11,6 +11,6 @@ export function BookmarkEditor({initial,onSave,onClose,onSuggest,collections,tag
  <label>描述<textarea value={form.description} onChange={e=>field('description',e.target.value)} rows={2}/></label>
  <label>备注<textarea value={form.notes} onChange={e=>field('notes',e.target.value)} rows={2}/></label>
  <label>标签（逗号分隔）<input value={form.tags} onChange={e=>field('tags',e.target.value)}/></label>
- <div className="suggested-tags">{tags.filter(t=>!form.tags.split(/[,，\n]/).map(x=>x.trim()).includes(t)).slice(0,12).map(t=><button type="button" key={t} onClick={()=>field('tags',[form.tags,t].filter(Boolean).join(', '))}>＋ {t}</button>)}</div><label>收藏集<input list="collections" value={form.collection} onChange={e=>field('collection',e.target.value)} placeholder="例如：设计资源"/><datalist id="collections">{collections.map(c=><option key={c} value={c}/>)}</datalist></label>
+ <div className="suggested-tags">{tags.filter(t=>!form.tags.split(/[,，\n]/).map(x=>x.trim()).includes(t)).slice(0,12).map(t=><button type="button" key={t} onClick={()=>field('tags',[form.tags,t].filter(Boolean).join(', '))}>＋ {t}</button>)}</div><label>收藏集<input list="collections" value={form.collection} onChange={e=>field('collection',e.target.value)} placeholder="例如：设计资源 / 图标"/><datalist id="collections">{collections.map(c=><option key={c} value={c}/>)}</datalist></label>
  {error&&<p role="alert" className="error">{error}</p>}<div className="actions"><button type="button" onClick={onClose}>取消</button><button className="primary" disabled={busy}>保存资源</button></div></form></Dialog>;
 }

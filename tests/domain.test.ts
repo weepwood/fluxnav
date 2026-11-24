@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {normalizeUrl,parseBookmark,parseLibrary,mergeLibraries,addUnique,emptyLibrary,searchBookmarks,exportHtml,patchBookmarks,appendTags,sameLibrary,duplicateGroups,mergeDuplicates,renameCollection} from '../src/domain.ts';
+import {normalizeUrl,parseBookmark,parseLibrary,mergeLibraries,addUnique,emptyLibrary,searchBookmarks,exportHtml,patchBookmarks,appendTags,sameLibrary,duplicateGroups,mergeDuplicates,renameCollection,collectionTree,inCollection,renameCollectionTree,reorderBookmark,faviconUrl} from '../src/domain.ts';
 const make = (id:string,url='https://example.com',extra={}) => parseBookmark({id,url,title:id,addedAt:1,updatedAt:1,...extra});
 test('reject dangerous URL protocols and credentials',()=>{for(const u of ['javascript:alert(1)','data:text/html,x','https://user:pass@example.com','file:///tmp/a','   ']) assert.throws(()=>normalizeUrl(u)); assert.equal(normalizeUrl('example.com'),'https://example.com/');});
 test('legacy import, invalid schema and ID validation',()=>{assert.equal(parseLibrary([make('a')]).schemaVersion,1);assert.throws(()=>parseLibrary({schemaVersion:2,bookmarks:[]}));assert.throws(()=>parseLibrary([make('a'),make('a')]));assert.throws(()=>parseLibrary([{url:'https://a.com',title:'a',tags:'bad'}]));});
@@ -36,3 +36,16 @@ test('collection rename includes archived but preserves deleted records',()=>{
  const lib=parseLibrary([make('a','https://a.com',{collection:'Old'}),make('b','https://b.com',{collection:'Old',archived:true}),make('c','https://c.com',{collection:'Old',deleted:true})]);
  const next=renameCollection(lib,'Old','New',20);assert.deepEqual(next.bookmarks.map(x=>x.collection),['New','New','Old']);assert.throws(()=>renameCollection(lib,'Old','Old'));
 });
+
+test('nested collection paths, counts, subtree rename and HTML hierarchy',()=>{
+ const lib=parseLibrary([make('a','https://a.com',{collection:'Design / Icons'}),make('b','https://b.com',{collection:'Design / Type'}),make('c','https://c.com',{collection:'Design / Icons',deleted:true}),make('d','https://d.com',{collection:'Design / Icons',archived:true})]);
+ const tree=collectionTree(lib.bookmarks);assert.equal(tree[0].name,'Design');assert.equal(tree[0].count,3);assert.equal(tree[0].children[0].count,2);assert.ok(inCollection('Design / Icons','Design'));assert.ok(!inCollection('Designer','Design'));
+ const next=renameCollectionTree(lib,'Design','Resources',10);assert.deepEqual(next.bookmarks.map(b=>b.collection),['Resources / Icons','Resources / Type','Design / Icons','Resources / Icons']);assert.throws(()=>renameCollectionTree(lib,'Design','Design / Child'));
+ const html=exportHtml(lib.bookmarks);assert.ok(html.includes('<H3>Design</H3>'));assert.ok(html.includes('<H3>Icons</H3>'));assert.ok(!html.includes('<H3>Design / Icons</H3>'));
+});
+test('manual ordering persists through parsing and protects pinned groups',()=>{
+ const lib=parseLibrary([make('a','https://a.com',{order:1024}),make('b','https://b.com',{order:2048}),make('c','https://c.com',{pinned:true}),make('d','https://d.com',{deleted:true})]);
+ const next=reorderBookmark(lib,'b','a','before',20);assert.deepEqual(searchBookmarks(next.bookmarks.filter(b=>!b.deleted),'','manual').map(b=>b.id),['c','b','a']);assert.deepEqual(parseLibrary(next),next);assert.equal(next.bookmarks[3],lib.bookmarks[3]);assert.throws(()=>reorderBookmark(lib,'c','a','after'));assert.equal(reorderBookmark(lib,'a','b','before'),lib);
+});
+
+test('favicon URL exposes only HTTPS origin, never query or credentials',()=>{assert.equal(faviconUrl('https://example.com/private?q=secret#x'),'https://example.com/favicon.ico');assert.equal(faviconUrl('http://example.com'),null);assert.equal(faviconUrl('https://user:pass@example.com'),null);});
