@@ -1,0 +1,20 @@
+/* Release-candidate visual consistency and accessibility checks. */
+.workspace .nav-entry:focus-visible,.workspace .collection-select:focus-visible,.workspace .section-toggle:focus-visible{outline-offset:-2px}
+.sidebar .more-collections{min-height:30px;justify-content:center;color:var(--muted);font-size:var(--font-xs)}
+.resource-menu button:focus-visible{outline-offset:-2px}.resource-menu button svg,.tool-button svg{flex:none}
+.dialog-heading h2{min-width:0;overflow-wrap:anywhere}.dialog-heading>.icon-button{flex:none}
+dialog{box-shadow:var(--shadow-dialog)}.form .error,.form [role=alert]{color:var(--danger);overflow-wrap:anywhere}
+.form .command-search input:not([type=checkbox]){background:transparent;border-radius:0}
+.workspace .resource-main .resource-title,.home-v18 .home-resource-text strong{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.resource-main[aria-pressed=true]:hover:not(:disabled){background:transparent;color:var(--text)}
+.workspace .resource-main:focus-visible{outline-offset:-2px}
+.resources article[data-drop=before],.resources article[data-drop=after]{content-visibility:visible}
+.ui-search:focus-within{outline:2px solid var(--focus);outline-offset:1px;box-shadow:none}
+.home-v18 .home-search:focus-within{outline-color:var(--home-accent)}
+/* A keyboard-visible focus indication in system high-contrast mode. */
+@media(forced-colors:active){
+ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,.ui-search:focus-within{outline:2px solid Highlight!important;outline-offset:2px!important}
+ button[aria-pressed=true],button[aria-current=true],.resources article.selected,.resources article[data-checked=true]{outline:1px solid Highlight;outline-offset:-1px}
+ .resources.list article[data-drop=before]{border-top:2px solid Highlight}.resources.list article[data-drop=after]{border-bottom:2px solid Highlight}
+ .resources.grid article[data-drop=before]{border-left:2px solid Highlight}.resources.grid article[data-drop=after]{border-right:2px solid Highlight}
+}

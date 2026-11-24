@@ -9,6 +9,7 @@ import "./styles/home.css";
 import "./styles/motion.css";
 import "./styles/design-lab.css";
 import "./styles/responsive.css";
+import "./styles/visual-qa.css";
 import App from "./App";
 
 createRoot(document.getElementById("root")!).render(
