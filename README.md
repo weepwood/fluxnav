@@ -88,3 +88,5 @@ AI 工作台支持按选中、未分类、无标签及本地搜索过滤资源�
 ## 1.10 公共组件与设计规范
 
 `styles/tokens.css` 集中维护主题、语义颜色、字体、尺寸、圆角和动效；`styles/controls.css` 为共享控件基础，保留旧 class 兼容；`components/ui.tsx` 提供 Button、IconButton、Input、Textarea、Select、Checkbox、SearchField、Segmented、Tag。首页、工作台、命令搜索、编辑器、外观设置及详情的高频控件优先迁移，剩余旧页面样式逐步治理。访问 `#/design`（设置→外观→组件与设计规范）可使用真实组件进行四主题隔离预览，不写入用户配置。弹窗复用现有 Dialog。未新增依赖。
+
+设计系统专项工作流仅在其脚本或工作流变更及手动触发时运行。本轮同时运行既有首页、工作台和动效专项以验证共享样式迁移；不加入普通快速 CI。

@@ -12,9 +12,9 @@ export function Input({className,...props}:ComponentPropsWithRef<'input'>){retur
 export function Select({className,...props}:ComponentPropsWithRef<'select'>){return <select {...props} className={cx('ui-select',className)}/>;}
 export function Textarea({className,...props}:ComponentPropsWithRef<'textarea'>){return <textarea {...props} className={cx('ui-textarea',className)}/>;}
 export function Checkbox({className,...props}:Omit<ComponentPropsWithRef<'input'>,'type'>){return <input {...props} type="checkbox" className={cx('ui-checkbox',className)}/>;}
-export function SearchField({className,value,onValueChange,onClear,shortcut,iconSize=16,inputProps}:{className?:string;value:string;onValueChange:(value:string)=>void;onClear?:()=>void;shortcut?:ReactNode;iconSize?:number;inputProps:Omit<ComponentPropsWithRef<'input'>,'value'|'onChange'|'ref'>}){
+export function SearchField({className,value,onValueChange,onClear,clearLabel='清除搜索',shortcut,iconSize=16,inputProps}:{className?:string;value:string;onValueChange:(value:string)=>void;onClear?:()=>void;clearLabel?:string;shortcut?:ReactNode;iconSize?:number;inputProps:Omit<ComponentPropsWithRef<'input'>,'value'|'onChange'|'ref'>}){
  const ref=useRef<HTMLInputElement>(null);
- return <div className={cx('ui-search',className)}><Icon name="search" size={iconSize}/><Input {...inputProps} ref={ref} value={value} onChange={e=>onValueChange(e.target.value)}/>{value&&onClear&&<IconButton size="sm" icon="close" label="清除搜索" onClick={()=>{onClear();ref.current?.focus({preventScroll:true});}}/>}{shortcut&&<kbd>{shortcut}</kbd>}</div>;
+ return <div className={cx('ui-search',className)}><Icon name="search" size={iconSize}/><Input {...inputProps} ref={ref} value={value} onChange={e=>onValueChange(e.target.value)}/>{value&&onClear&&<IconButton size="sm" icon="close" label={clearLabel} onClick={()=>{onClear();ref.current?.focus({preventScroll:true});}}/>}{shortcut&&<kbd>{shortcut}</kbd>}</div>;
 }
 export type SegmentOption<T extends string>={value:T;label:string;icon?:string;text?:string};
 export function Segmented<T extends string>({label,value,options,onChange,className}:{label:string;value:T;options:readonly SegmentOption<T>[];onChange:(value:T)=>void;className?:string}){

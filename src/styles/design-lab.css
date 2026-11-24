@@ -6,3 +6,5 @@
 .design-lab-link{display:inline-flex;align-items:center;min-height:32px;color:var(--color-muted);font-size:var(--font-sm);border-top:1px solid var(--color-border);padding-top:12px}
 dialog[data-variant=command] .command-search{min-height:45px}.command-search input{font-size:15px}
 @media(max-width:650px){.lab-header{padding:12px 14px}.lab-header>div{gap:6px}.lab-header>div>span{display:none}.lab-content{padding:20px 12px 40px;gap:16px}.lab-section{padding:14px}.lab-intro h1{font-size:24px}.lab-metrics{grid-template-columns:1fr}.lab-fields{grid-template-columns:1fr}}
+
+.design-lab dialog{background:var(--color-surface);color:var(--color-text);box-shadow:var(--shadow-dialog)}.design-lab .lab-intro .ui-segmented{flex-wrap:wrap}.design-lab .lab-row button{max-width:100%}

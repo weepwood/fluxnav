@@ -37,3 +37,5 @@ input::placeholder,textarea::placeholder{color:var(--color-muted);opacity:.9}tex
 .ui-tag[data-tone=selected]{background:var(--color-selected);color:var(--color-selected-text)}
 .ui-tag[data-tone=danger]{color:var(--color-danger)}
 @media(prefers-reduced-motion:reduce){.ui-spinner{animation:none!important}}
+
+.ui-segmented.view-switch button{padding:5px;min-width:30px}.ui-segmented.view-switch button[aria-pressed=true]{background:var(--color-surface);color:var(--color-text)}
