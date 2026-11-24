@@ -62,6 +62,9 @@ try{
   await page.getByRole('button',{name:'撤销',exact:true}).click();
   await page.getByRole('checkbox',{name:'选择 Keep import'}).waitFor({state:'detached'});
   await page.getByRole('button',{name:'设置 / 同步'}).click();
+  await page.getByRole('navigation',{name:'设置分类'}).getByRole('button',{name:'AI 服务'}).click();
+  await page.getByLabel('API Base URL').waitFor();
+  await page.getByRole('navigation',{name:'设置分类'}).getByRole('button',{name:'外观'}).click();
   await page.getByRole('button',{name:'深色',exact:true}).click();
   assert.equal(await page.locator('html').getAttribute('data-theme'),'dark');
   await page.keyboard.press('Escape');
@@ -99,7 +102,14 @@ try{
   assert.equal(await page.getByRole('separator',{name:'调整左侧栏宽度'}).getAttribute('aria-valuenow'),'218');
   await page.getByRole('link',{name:'起始页'}).click();
   await page.locator('.home[data-layout="tiles"]').waitFor();
+  await page.getByRole('button',{name:'外观设置',exact:true}).click();
+  await page.getByRole('dialog',{name:'设置与同步'}).waitFor();
+  await page.keyboard.press('Escape');
   await page.getByRole('button',{name:'管理书签'}).click();
+  await page.getByRole('button',{name:'网格视图'}).click();
+  await page.locator('.resources.grid').waitFor();
+  await page.getByRole('button',{name:'列表视图'}).click();
+  await page.locator('.resources.list').waitFor();
   await page.setViewportSize({width:390,height:844});
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'mobile overflow');
   assert.deepEqual(errors,[]);
