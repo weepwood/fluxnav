@@ -1,4 +1,4 @@
-import { emptyLibrary, mergeLibraries, parseLibrary, type Library } from './domain';
+import { emptyLibrary, mergeLibraries, parseLibrary, sameLibrary, type Library } from './domain';
 export const readLocal = (key: string): string | null => { try { return localStorage.getItem(key); } catch { return null; } };
 export const writeLocal = (key: string, value: string) => { try { localStorage.setItem(key,value); return true; } catch { return false; } };
 export function readSettings<T>(key: string, defaults: T): T { try { const raw = JSON.parse(readLocal(key) || 'null'); return raw && typeof raw === 'object' && !Array.isArray(raw) ? {...defaults,...raw} : defaults; } catch { return defaults; } }
@@ -28,7 +28,7 @@ async function mergeIntoDatabase(library: Library): Promise<Library> {
   return new Promise((resolve,reject)=>{
     const tx=d.transaction('data','readwrite'), store=tx.objectStore('data'), req=store.get('library');
     let result=library;
-    req.onsuccess=()=>{try{if(req.result!==undefined)result=mergeLibraries(library,parseLibrary(req.result));store.put(result,'library');}catch(e){reject(e);tx.abort();}};
+    req.onsuccess=()=>{try{if(req.result!==undefined){const current=parseLibrary(req.result);result=mergeLibraries(library,current);if(!sameLibrary(current,result))store.put(result,'library');}else store.put(result,'library');}catch(e){reject(e);tx.abort();}};
     tx.oncomplete=()=>resolve(result);tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||Error('数据写入已中止'));
   });
 }
