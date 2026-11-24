@@ -1,12 +1,5 @@
 name: 正式版本完整验证与发布
 on:
-  # One-time, explicitly requested v2 release gate; normal PRs never run this workflow.
-  pull_request:
-    branches: [main]
-    paths: ['docs/releases/v2.0.0.md']
-  push:
-    branches: [main]
-    paths: ['docs/releases/v2.0.0.md']
   workflow_dispatch:
     inputs:
       publish:
@@ -20,7 +13,6 @@ concurrency:
   cancel-in-progress: false
 jobs:
   validate:
-    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push' || github.head_ref == 'release/fluxnav-v2'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -35,6 +27,8 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --no-audit --no-fund
+      - name: 项目记忆结构检查
+        run: npm run check:memory
       - name: 检查生产依赖安全
         run: npm audit --omit=dev --audit-level=high
       - name: 类型、全部单元测试及压力测试
@@ -87,7 +81,7 @@ jobs:
           path: release/
           if-no-files-found: error
   release:
-    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.publish))
+    if: github.ref == 'refs/heads/main' && inputs.publish
     needs: validate
     runs-on: ubuntu-24.04
     permissions:
@@ -98,6 +92,8 @@ jobs:
         with:
           name: fluxnav-distribution
           path: release
+      - name: 校验下载的分发产物
+        run: cd release && sha256sum -c SHA256SUMS.txt
       - name: 发布已验证的提交
         env:
           GH_TOKEN: ${{ github.token }}
@@ -110,10 +106,6 @@ jobs:
           EXISTING_TAG="$(git ls-remote --tags origin "refs/tags/$VERSION")"
           if [ -n "$EXISTING_TAG" ]; then
             echo "::error::标签 $VERSION 已存在；为避免发布错误提交，请使用未占用的版本号"
-            exit 1
-          fi
-          if [ "$GITHUB_EVENT_NAME" = push ] && [ "$VERSION" != v2.0.0 ]; then
-            echo "::error::本次自动发布仅允许 v2.0.0"
             exit 1
           fi
           NOTES=CHANGELOG.md

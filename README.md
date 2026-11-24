@@ -9,7 +9,7 @@ Local-first AI Bookmark Workspace。保留编辑式起始页，提供三栏资�
 
 ## AI Agent 项目交接
 
-跨会话开发从 [AGENTS.md](AGENTS.md) 开始，读取 [当前状态](docs/agent/STATE.md) 和 [最新交接](docs/agent/HANDOFF.md)，以实际代码、Git、CI 为准。可复用的初始化模板见 [Agent Project Memory Kit](docs/agent/kit/README.md)。
+跨会话开发从 [AGENTS.md](AGENTS.md) 开始，读取 [当前状态](docs/agent/STATE.md) 和 [最新交接](docs/agent/HANDOFF.md)，以实际代码、Git、CI 为准。`npm run check:memory` 检查文档结构、相对链接与过期日期（过期只警告），并执行初始化器回归测试。可复用的初始化模板见 [Agent Project Memory Kit](docs/agent/kit/README.md)。
 
 ## 开发
 
@@ -111,4 +111,4 @@ AI 工作台支持按选中、未分类、无标签及本地搜索过滤资源�
 
 ## 2.0 正式发布
 
-本次发布标记 `docs/releases/v2.0.0.md` 触发一次性 PR 全量验证和 main 合并后的正式发布，未来日常 PR 不触发。手动验证/发布入口仍保留。发布新增 SHA-256 校验、生产 PWA 离线与单文件 HTML 离线运行验证、扩展捕获逻辑模拟验证、同步 HTTP 模拟测试；不使用真实个人 API Key 或 Gist Token。完整测试包含此前六项浏览器专项，发布失败不创建 Release。
+v2.0 发布曾使用一次性标记触发完整验收及发布；该触发已移除，后续正式发布恢复手动 workflow_dispatch，不再由历史发行文档触发。发布新增 SHA-256 校验、生产 PWA 离线与单文件 HTML 离线运行验证、扩展捕获逻辑模拟验证、同步 HTTP 模拟测试；不使用真实个人 API Key 或 Gist Token。完整测试包含此前六项浏览器专项，发布失败不创建 Release。

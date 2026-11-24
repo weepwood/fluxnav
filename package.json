@@ -12,7 +12,8 @@
     "test": "node --experimental-strip-types --test tests/*.test.ts",
     "check": "npm run typecheck && npm test",
     "test:quick": "node --experimental-strip-types --test tests/domain.test.ts tests/crypto.test.ts tests/imports.test.ts tests/ai.test.ts tests/appearance.test.ts tests/responsive.test.ts tests/theme-contrast.test.ts",
-    "check:quick": "npm run typecheck && npm run test:quick"
+    "check:quick": "npm run typecheck && npm run test:quick",
+    "check:memory": "node docs/agent/kit/check.mjs . && node --test docs/agent/kit/check.test.mjs"
   },
   "dependencies": {
     "clsx": "2.1.1",

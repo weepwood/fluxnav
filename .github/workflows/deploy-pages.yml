@@ -23,6 +23,8 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --no-audit --no-fund
+      - name: 项目记忆结构与初始化器检查
+        run: npm run check:memory
       - name: 快速类型与核心逻辑检查
         run: npm run check:quick
       - name: 存储改动专项验证（仅相关 PR）
