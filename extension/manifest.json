@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "FluxNav Capture",
   "description": "将当前网页保存到 FluxNav，保存前确认。",
-  "version": "1.9.0",
+  "version": "1.10.0",
   "permissions": [
     "activeTab"
   ],
