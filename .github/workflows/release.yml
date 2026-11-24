@@ -1,0 +1,86 @@
+name: 正式版本完整验证与发布
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: '完整测试通过后发布 GitHub Release（仅 main）'
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: fluxnav-release-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: 检查发布分支
+        if: inputs.publish && github.ref != 'refs/heads/main'
+        run: |
+          echo '::error::正式发布必须从 main 分支运行'
+          exit 1
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: 检查生产依赖安全
+        run: npm audit --omit=dev --audit-level=high
+      - name: 类型、全部单元测试及压力测试
+        run: npm run check
+      - name: Web 生产构建
+        run: npm run build
+        env:
+          GITHUB_PAGES: 'true'
+      - run: npm run build:portable
+      - name: 浏览器端到端测试
+        run: |
+          npm install --no-save --package-lock=false --no-audit --no-fund playwright@1.58.2
+          npx playwright install --with-deps chromium
+          node tests/browser.mjs
+      - name: 验证与打包发布产物
+        run: |
+          test -f dist/index.html
+          test -f dist/sw.js
+          test -f dist/manifest.webmanifest
+          test -f dist-portable/index.html
+          node --check dist/sw.js
+          node --check extension/background.js
+          mkdir -p release
+          cp dist-portable/index.html release/fluxnav-portable.html
+          (cd extension && zip -r ../release/fluxnav-extension.zip .)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fluxnav-distribution
+          path: release/
+          if-no-files-found: error
+  release:
+    if: inputs.publish && github.ref == 'refs/heads/main'
+    needs: validate
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: fluxnav-distribution
+          path: release
+      - name: 发布已验证的提交
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="v$(node -p "require('./package.json').version")"
+          if gh release view "$VERSION" >/dev/null 2>&1; then
+            echo "::error::版本 $VERSION 已发布，请先更新版本号，或取消 publish 仅执行验证"
+            exit 1
+          fi
+          EXISTING_TAG="$(git ls-remote --tags origin "refs/tags/$VERSION")"
+          if [ -n "$EXISTING_TAG" ]; then
+            echo "::error::标签 $VERSION 已存在；为避免发布错误提交，请使用未占用的版本号"
+            exit 1
+          fi
+          gh release create "$VERSION" release/* --target "$GITHUB_SHA" --title "FluxNav $VERSION" --notes-file CHANGELOG.md

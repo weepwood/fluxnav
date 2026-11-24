@@ -13,40 +13,26 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-24.04
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
-      - run: npm ci
-      - name: 检查生产依赖安全
-        run: npm audit --omit=dev --audit-level=high
-      - run: npm run check
-      - run: npm run build
+      - run: npm ci --no-audit --no-fund
+      - name: 快速类型与核心逻辑检查
+        run: npm run check:quick
+      - name: Web 生产构建
+        run: npm run build
         env:
           GITHUB_PAGES: 'true'
-      - run: npm run build:portable
-      - name: 浏览器端到端测试
-        run: |
-          npm install --no-save --package-lock=false playwright@1.58.2
-          npx playwright install --with-deps chromium
-          node tests/browser.mjs
-      - name: 验证发布产物
+      - name: 检查站点基础产物
         run: |
           test -f dist/index.html
           test -f dist/sw.js
           test -f dist/manifest.webmanifest
-          test -f dist-portable/index.html
           node --check dist/sw.js
-          node --check extension/background.js
-          mkdir -p release
-          cp dist-portable/index.html release/fluxnav-portable.html
-          (cd extension && zip -r ../release/fluxnav-extension.zip .)
-      - uses: actions/upload-artifact@v4
-        with:
-          name: fluxnav-distribution
-          path: release/
       - uses: actions/upload-pages-artifact@v3
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         with:
@@ -65,23 +51,3 @@ jobs:
       - uses: actions/configure-pages@v5
       - uses: actions/deploy-pages@v4
         id: deployment
-  release:
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-    needs: deploy
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with:
-          name: fluxnav-distribution
-          path: release
-      - name: 发布正式版本
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          VERSION="v$(node -p "require('./package.json').version")"
-          if ! gh release view "$VERSION" >/dev/null 2>&1; then
-            gh release create "$VERSION" release/* --target "$GITHUB_SHA" --title "FluxNav $VERSION" --notes-file CHANGELOG.md
-          fi
