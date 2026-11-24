@@ -1,0 +1,33 @@
+import {chromium} from 'playwright';
+import {spawn} from 'node:child_process';
+import assert from 'node:assert/strict';
+import {mkdir} from 'node:fs/promises';
+const server=spawn('npm',['run','dev','--','--host','127.0.0.1','--port','4175','--strictPort'],{stdio:'inherit'});
+let browser;
+try{
+ let ready=false;for(let i=0;i<80;i++){try{if((await fetch('http://127.0.0.1:4175/')).ok){ready=true;break;}}catch{}await new Promise(r=>setTimeout(r,200));}assert.ok(ready);
+ browser=await chromium.launch({headless:true});const page=await browser.newPage({viewport:{width:1440,height:900},deviceScaleFactor:1});
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ const names=['GitHub','Figma','BoardUI','Reka UI','Vercel','Linear','Notion','React','Vue','Cloudflare','MDN Web Docs','TypeScript','Tailwind CSS','Motion','Radix UI','shadcn/ui'];
+ const hosts=['github.com','figma.com','boardui.com','reka-ui.com','vercel.com','linear.app','notion.so','react.dev','vuejs.org','cloudflare.com','developer.mozilla.org','typescriptlang.org','tailwindcss.com','motion.dev','radix-ui.com','ui.shadcn.com'];
+ const records=Array.from({length:64},(_,i)=>({id:'visual-'+i,url:'https://'+(hosts[i]||'resource'+i+'.example')+'/',title:names[i]||'Resource '+i,description:'',notes:'',tags:[['设计','开发','工具','参考'][i%4],'Tag '+i],collection:'Resources',addedAt:Date.UTC(2026,0,1)+i*86400000,updatedAt:Date.UTC(2026,0,1)+i*86400000,lastVisited:0,visitCount:0,favorite:i%3===0,pinned:i<6,archived:false,deleted:false}));
+ await page.addInitScript(data=>{if(!localStorage.getItem('fluxnav-home-visual-seeded')){localStorage.setItem('fluxnav-bookmarks',JSON.stringify({schemaVersion:1,bookmarks:data}));localStorage.setItem('fluxnav-home-visual-seeded','1');}},records);
+ await page.goto('http://127.0.0.1:4175/#/');await page.locator('.home-resource').first().waitFor();
+ await mkdir('home-visual-artifacts',{recursive:true});const noOverflow=async()=>assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'no horizontal overflow');
+ assert.equal(await page.locator('.home-pinned .home-resource').count(),6);assert.equal(await page.locator('.home-resource').count(),48);
+ await noOverflow();await page.screenshot({path:'home-visual-artifacts/desktop-list.png'});
+ await page.getByRole('button',{name:'首页磁贴',exact:true}).click();await page.locator('.home[data-layout=tiles]').waitFor();await page.screenshot({path:'home-visual-artifacts/desktop-tiles.png'});
+ await page.getByRole('button',{name:'外观设置',exact:true}).click();await page.getByRole('navigation',{name:'设置分类'}).getByRole('button',{name:'首页',exact:true}).click();
+ await page.getByRole('button',{name:'背景：点阵',exact:true}).click();await page.getByRole('button',{name:'强调色：雾蓝',exact:true}).click();await page.getByLabel('首页标题',{exact:true}).fill('My Library');await page.getByLabel('首页标题',{exact:true}).press('Enter');
+ await page.getByLabel('首页密度').selectOption('compact');await page.getByLabel('首页宽度').selectOption('wide');await page.getByRole('checkbox',{name:'显示网站域名'}).uncheck();await page.screenshot({path:'home-visual-artifacts/personalization.png'});
+ await page.keyboard.press('Escape');await page.locator('.home[data-background=dots][data-accent=blue][data-density=compact][data-width=wide]').waitFor();assert.equal(await page.locator('.home-resource-text small').count(),0);
+ assert.equal(await page.locator('.home h1').innerText(),'My Library.');await noOverflow();await page.screenshot({path:'home-visual-artifacts/desktop-compact.png'});
+ await page.reload();await page.locator('.home-resource').first().waitFor();assert.equal(await page.locator('.home h1').innerText(),'My Library.');assert.equal(await page.locator('.home').getAttribute('data-background'),'dots');
+ await page.getByRole('button',{name:'外观设置',exact:true}).click();await page.getByRole('button',{name:'深色',exact:true}).click();await page.keyboard.press('Escape');await page.screenshot({path:'home-visual-artifacts/desktop-dark.png'});
+ await page.getByRole('textbox',{name:'搜索网站或标签'}).fill('GitHub');await page.waitForFunction(()=>document.querySelectorAll('.home-resource').length===1);assert.equal(await page.locator('.home-resource strong').innerText(),'GitHub');await page.getByRole('textbox',{name:'搜索网站或标签'}).press('Escape');await page.waitForFunction(()=>document.querySelectorAll('.home-resource').length===48);
+ await page.getByRole('button',{name:'收藏与置顶',exact:true}).click();assert.equal(await page.locator('.home-pinned').count(),0);await page.getByRole('button',{name:'收藏与置顶',exact:true}).click();
+ await page.getByRole('button',{name:'添加书签',exact:true}).click();await page.getByPlaceholder('https://example.com').waitFor();await page.keyboard.press('Escape');
+ await page.setViewportSize({width:390,height:844});await noOverflow();await page.screenshot({path:'home-visual-artifacts/mobile-tiles.png'});await page.getByRole('button',{name:'首页列表',exact:true}).click();await page.screenshot({path:'home-visual-artifacts/mobile-list.png'});await page.setViewportSize({width:320,height:700});await noOverflow();
+ await page.getByRole('button',{name:'外观设置',exact:true}).click();await page.getByRole('navigation',{name:'设置分类'}).getByRole('button',{name:'首页',exact:true}).click();await page.getByRole('button',{name:'恢复首页默认样式'}).click();await page.keyboard.press('Escape');assert.equal(await page.locator('.home').getAttribute('data-background'),'plain');assert.equal(await page.locator('.home h1').innerText(),'FluxNav.');
+ assert.deepEqual(errors,[]);console.log('Home visual checks passed: layout, pinned groups, search, customization, persistence, reset and mobile.');
+}finally{await browser?.close();server.kill();}
