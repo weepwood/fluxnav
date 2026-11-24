@@ -1,16 +1,4 @@
-/* FluxNav 1.6 — visual foundation. Overrides legacy styling without altering persistence. */
-:root{--radius:8px;--bg:#f7f6f3;--surface:#fffefa;--side:#f2f0eb;--text:#292923;--muted:#706f67;--line:#e3e0d9;--hover:#eeece6;--active:#e7e5de;--accent:#343b35;--on-accent:#fff;--focus:#577b66;--selection:#e3ebe3;--selection-text:#2d4b37;--shadow-panel:0 12px 40px #28271d14;--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-6:24px;--header-height:58px;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased}
-:root[data-theme="minimal"]{--bg:#f7f8fa;--surface:#fff;--side:#f4f5f7;--text:#23252b;--muted:#686d77;--line:#e2e5ea;--hover:#eff1f4;--active:#e6e9ee;--accent:#333944;--focus:#536ba4;--selection:#e5ebf8;--selection-text:#344d80}
-:root[data-theme="dark"]{--bg:#17191d;--surface:#1d2024;--side:#191b1f;--text:#e6e8eb;--muted:#a5acb6;--line:#34383e;--hover:#282c32;--active:#333942;--accent:#c7d5cd;--on-accent:#19251e;--focus:#9fbfae;--selection:#303e37;--selection-text:#d6e6dc;--shadow-panel:0 12px 40px #0005}
-:root[data-theme="nordic"]{--bg:#eef2f5;--surface:#fbfcfe;--side:#e9eef3;--text:#2a3a4b;--muted:#5a6d82;--line:#d9e2eb;--hover:#e6edf3;--active:#dce6ee;--accent:#3d5972;--focus:#4d7ca6;--selection:#dce9f3;--selection-text:#30516e}
-:root{scrollbar-color:var(--line) transparent;scrollbar-width:thin}
-button,input:not([type=checkbox]),textarea,select{border-radius:var(--radius);font-size:13px}
-button{min-height:32px;padding:6px 11px;transition:background .15s,border-color .15s,color .15s}
-button:hover{border-color:var(--line)}button.primary:hover{opacity:.94}button.icon-button{display:inline-flex;align-items:center;justify-content:center;min-width:32px;min-height:32px;padding:6px}
-button.icon-button:hover,button.quiet:hover{background:var(--hover)}
-button[aria-pressed=true],button[aria-current=true]{background:var(--selection);color:var(--selection-text)}
-button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
-input:not([type=checkbox]),textarea,select{padding:9px 11px}input::placeholder,textarea::placeholder{color:var(--muted);opacity:.9}
+/* Page composition; shared tokens and control defaults live in tokens.css / controls.css. */
 .brand{font:650 20px/1.15 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:-.05em;gap:9px}.brand:hover{text-decoration:none}.brand-mark{border-radius:8px;width:30px;height:30px;font-weight:700;letter-spacing:-.04em}
 .eyebrow{letter-spacing:.035em;font-weight:600;text-transform:none;font-size:11px}
 .workspace-header{height:var(--header-height);padding:0 18px;gap:12px;background:var(--surface)}

@@ -1,10 +1,13 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
+import "./styles/tokens.css";
+import "./styles/controls.css";
 import "./styles/interface.css";
 import "./styles/workspace.css";
 import "./styles/home.css";
 import "./styles/motion.css";
+import "./styles/design-lab.css";
 import App from "./App";
 
 createRoot(document.getElementById("root")!).render(
