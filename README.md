@@ -7,6 +7,10 @@ Local-first AI Bookmark Workspace。保留编辑式起始页，提供三栏资�
 - [GitHub Pages](https://weepwood.github.io/fluxnav/)
 - [Netlify](https://fluxnav.netlify.app)
 
+## AI Agent 项目交接
+
+跨会话开发从 [AGENTS.md](AGENTS.md) 开始，读取 [当前状态](docs/agent/STATE.md) 和 [最新交接](docs/agent/HANDOFF.md)，以实际代码、Git、CI 为准。可复用的初始化模板见 [Agent Project Memory Kit](docs/agent/kit/README.md)。
+
 ## 开发
 
 Node.js 22；运行 npm ci、npm run dev。npm run check 执行 TypeScript 和领域逻辑测试。npm run build 生成支持离线的 Web 站点，npm run build:portable 生成单文件 HTML（离线分发仍依赖浏览器存储能力）。GitHub Actions 的日常 PR 和 main 仅执行快速检查及 Web 构建，main 成功后自动部署 GitHub Pages；不自动创建 Release。正式版本由独立的手动工作流验证和发布。
