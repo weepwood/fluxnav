@@ -27,3 +27,7 @@ node /path/to/init.mjs /path/to/your-repo --adapters
 每轮开始查 Git 状态并读 STATE/HANDOFF，每轮结束同步更新。重大决策记录 DECISIONS，重要会话摘要归档 sessions。公共工程规范只维护在 AGENTS.md；其他工具入口不得复制形成第二套相互冲突规则。
 
 本模板用于公开/私有工程文档，均不要记录密码、Token、原始私人聊天及真实个人数据。不要复制 FluxNav 的项目专属技术栈、发布记录或自动合并授权到其他项目。
+
+## 只读检查
+
+复制 check.mjs 后运行 `node /path/to/check.mjs /path/to/your-repo`。检查 8 个必需文件、普通 Markdown 相对链接、空文件、越界及符号链接；STATE/HANDOFF 缺少有效日期、未来日期或超过 30 天只警告。外链、复杂 Markdown 语法、事实真伪、GitHub 状态不自动验证；必须由接手 Agent 核实。不写入文件，不联网。FluxNav 使用 `npm run check:memory` 同时运行检查与临时目录回归测试。
