@@ -43,13 +43,18 @@ export function parseLibrary(raw: unknown): Library {
   if (new Set(bookmarks.map(b => b.id)).size !== bookmarks.length) throw Error('存在重复书签 ID');
   return { schemaVersion: 1, bookmarks };
 }
+export function chooseBookmark(prev:Bookmark|undefined,b:Bookmark):Bookmark{
+ if(!prev)return b;if(prev===b)return prev;
+ if(b.updatedAt>prev.updatedAt)return b;
+ if(b.updatedAt<prev.updatedAt)return prev;
+ if(b.deleted!==prev.deleted)return b.deleted?b:prev;
+ return JSON.stringify(b)>JSON.stringify(prev)?b:prev;
+}
 export function mergeLibraries(local: Library, remote: Library): Library {
   const records = new Map(local.bookmarks.map(b => [b.id,b]));
   for (const b of remote.bookmarks) {
     const prev = records.get(b.id);
-    // Stable tie-break, including deletion, so merge is deterministic.
-    if (prev===b)continue;
-    if (!prev || b.updatedAt > prev.updatedAt || (b.updatedAt === prev.updatedAt && (Number(b.deleted) > Number(prev.deleted) || (b.deleted === prev.deleted && JSON.stringify(b) > JSON.stringify(prev))))) records.set(b.id,b);
+    records.set(b.id,chooseBookmark(prev,b));
   }
   return { schemaVersion: 1, bookmarks: [...records.values()].sort((a,b) => a.id.localeCompare(b.id)) };
 }

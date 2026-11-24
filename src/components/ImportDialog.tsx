@@ -5,7 +5,7 @@ import {Dialog} from './Dialog';
 export function ImportDialog({library,onClose,onApply}:{library:Library;onClose:()=>void;onApply:(report:ImportReport,mode:'merge'|'restore')=>void}){
  const [file,setFile]=useState<File|null>(null),[encoding,setEncoding]=useState('auto'),[report,setReport]=useState<ImportReport|null>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false),[mode,setMode]=useState<'merge'|'restore'>('merge'),[confirmed,setConfirmed]=useState(false);
  const generation=useRef(0);
- useEffect(()=>{if(!file)return;const token=++generation.current;setBusy(true);setReport(null);setError('');setMode('merge');setConfirmed(false);
+ useEffect(()=>{if(!file){setReport(null);setBusy(false);setError('');return;}const token=++generation.current;setBusy(true);setReport(null);setError('');setMode('merge');setConfirmed(false);
  void (async()=>{try{if(file.size>MAX_FILE_BYTES)throw Error('文件超过 30 MB');const raw=decodeImport(await file.arrayBuffer(),encoding);if(token!==generation.current)return;const clean=raw.trimStart();const result=/^\s*[\[{]/.test(clean)?analyzeJson(JSON.parse(clean)):/^\s*</.test(clean)?analyzeHtml(clean):/\.json$/i.test(file.name)?analyzeJson(JSON.parse(clean)):analyzeHtml(clean);if(token===generation.current)setReport(result);}catch(e){if(token===generation.current)setError((e as Error).message);}finally{if(token===generation.current)setBusy(false);}})();
  return()=>{generation.current++;};},[file,encoding]);
  const preview=useMemo(()=>{if(!report)return null;try{return {data:previewImport(report,library,mode),error:''};}catch(e){return {data:null,error:(e as Error).message};}},[report,library,mode]);
