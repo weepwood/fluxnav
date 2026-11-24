@@ -1,7 +1,7 @@
 {
   "name": "fluxnav",
   "private": true,
-  "version": "1.7.0",
+  "version": "1.8.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit",
     "test": "node --experimental-strip-types --test tests/*.test.ts",
     "check": "npm run typecheck && npm test",
-    "test:quick": "node --experimental-strip-types --test tests/domain.test.ts tests/crypto.test.ts tests/imports.test.ts tests/ai.test.ts",
+    "test:quick": "node --experimental-strip-types --test tests/domain.test.ts tests/crypto.test.ts tests/imports.test.ts tests/ai.test.ts tests/appearance.test.ts",
     "check:quick": "npm run typecheck && npm run test:quick"
   },
   "dependencies": {
