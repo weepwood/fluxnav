@@ -29,6 +29,35 @@ try{
   await page.getByRole('textbox',{name:'搜索资源和命令'}).fill('Example');
   await page.getByRole('button',{name:/Example/}).last().waitFor();
   await page.keyboard.press('Escape');
+  // Add a URL without a title, then batch-move and tag it.
+  await page.getByRole('button',{name:'＋ 添加'}).click();
+  await page.getByPlaceholder('https://example.com').fill('https://react.dev');
+  await page.getByRole('button',{name:'保存资源'}).click();
+  await page.getByRole('checkbox',{name:'选择 react.dev',exact:true}).check();
+  await page.getByRole('button',{name:'移动收藏集'}).click();
+  await page.getByRole('textbox',{name:'目标收藏集'}).fill('开发资料');
+  await page.getByRole('button',{name:'应用',exact:true}).click();
+  await page.getByRole('button',{name:'开发资料',exact:true}).click();
+  await page.getByRole('checkbox',{name:'选择 react.dev',exact:true}).check();
+  await page.getByRole('button',{name:'追加标签'}).click();
+  await page.getByRole('textbox',{name:'新增标签'}).fill('React, 框架');
+  await page.getByRole('button',{name:'应用',exact:true}).click();
+  await page.getByRole('button',{name:'框架',exact:true}).waitFor();
+  await page.getByRole('button',{name:'撤销',exact:true}).click();
+  await page.getByRole('button',{name:'框架',exact:true}).waitFor({state:'detached'});
+  await page.getByRole('button',{name:/全部资源/}).first().click();
+  // Nested HTML folders are preserved without loading remote images.
+  await page.getByRole('button',{name:'导入书签'}).click();
+  const html='<DL><p><DT><H3>Design</H3><DL><p><DT><H3>Icons</H3><DL><p><DT><A HREF="https://icons.example.com">Icons Example</A></DL><p></DL><p></DL><p>';
+  await page.getByLabel('选择书签文件').setInputFiles({name:'bookmarks.html',mimeType:'text/html',buffer:Buffer.from(html)});
+  await page.getByRole('button',{name:'确认导入'}).click();
+  await page.getByRole('button',{name:'Design / Icons',exact:true}).waitFor();
+  await page.getByRole('button',{name:'设置 / 同步'}).click();
+  await page.getByRole('button',{name:'深色',exact:true}).click();
+  assert.equal(await page.locator('html').getAttribute('data-theme'),'dark');
+  await page.keyboard.press('Escape');
+  await page.setViewportSize({width:390,height:844});
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'mobile overflow');
   assert.deepEqual(errors,[]);
   console.log('Browser smoke test passed');
 }finally{await browser?.close();server.kill();}

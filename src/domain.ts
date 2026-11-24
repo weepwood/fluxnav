@@ -48,6 +48,7 @@ export function mergeLibraries(local: Library, remote: Library): Library {
   for (const b of remote.bookmarks) {
     const prev = records.get(b.id);
     // Stable tie-break, including deletion, so merge is deterministic.
+    if (prev===b)continue;
     if (!prev || b.updatedAt > prev.updatedAt || (b.updatedAt === prev.updatedAt && (Number(b.deleted) > Number(prev.deleted) || (b.deleted === prev.deleted && JSON.stringify(b) > JSON.stringify(prev))))) records.set(b.id,b);
   }
   return { schemaVersion: 1, bookmarks: [...records.values()].sort((a,b) => a.id.localeCompare(b.id)) };
