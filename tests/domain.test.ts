@@ -1,0 +1,9 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {normalizeUrl,parseBookmark,parseLibrary,mergeLibraries,addUnique,emptyLibrary,searchBookmarks,exportHtml} from '../src/domain.ts';
+const make = (id:string,url='https://example.com',extra={}) => parseBookmark({id,url,title:id,addedAt:1,updatedAt:1,...extra});
+test('reject dangerous URL protocols and credentials',()=>{for(const u of ['javascript:alert(1)','data:text/html,x','https://user:pass@example.com','file:///tmp/a','   ']) assert.throws(()=>normalizeUrl(u)); assert.equal(normalizeUrl('example.com'),'https://example.com/');});
+test('legacy import, invalid schema and ID validation',()=>{assert.equal(parseLibrary([make('a')]).schemaVersion,1);assert.throws(()=>parseLibrary({schemaVersion:2,bookmarks:[]}));assert.throws(()=>parseLibrary([make('a'),make('a')]));assert.throws(()=>parseLibrary([{url:'https://a.com',title:'a',tags:'bad'}]));});
+test('merge preserves independent additions and tombstones',()=>{const a=parseLibrary([make('a'),make('b','https://b.com')]);const b=parseLibrary([make('a','https://example.com',{updatedAt:2,deleted:true}),make('c','https://c.com')]);const merged=mergeLibraries(a,b);assert.equal(merged.bookmarks.length,3);assert.equal(merged.bookmarks[0].deleted,true);assert.deepEqual(merged,mergeLibraries(b,a));});
+test('import deduplicates canonical URLs and search handles multiple terms',()=>{const v=addUnique(emptyLibrary(),[make('a'),make('b','https://example.com/#a'),make('React','https://react.dev',{tags:['开发']})]);assert.equal(v.added,2);assert.equal(searchBookmarks(v.library.bookmarks,'react 开发','title').length,1);});
+test('HTML export escapes markup and excludes deleted records',()=>{const a=make('a','https://a.com',{title:'<script>&"'});const b=make('b','https://b.com',{deleted:true});const html=exportHtml([a,b]);assert.ok(html.includes('&lt;script&gt;&amp;&quot;'));assert.ok(!html.includes('https://b.com'));});

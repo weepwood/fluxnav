@@ -1,56 +1,87 @@
-name: 部署 GitHub Pages
-
+name: 质量检查与部署
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
-
 permissions:
   contents: read
-  pages: write
-  id-token: write
-
 concurrency:
-  group: github-pages
-  cancel-in-progress: false
-
+  group: fluxnav-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - name: 检出代码
-        uses: actions/checkout@v4
-
-      - name: 配置 Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
-
-      - name: 安装依赖
-        run: npm ci
-
-      - name: 构建 GitHub Pages 站点
-        run: npm run build
+      - run: npm ci
+      - name: 检查生产依赖安全
+        run: npm audit --omit=dev --audit-level=high
+      - run: npm run check
+      - run: npm run build
         env:
           GITHUB_PAGES: 'true'
-
-      - name: 配置 GitHub Pages
-        uses: actions/configure-pages@v5
-
-      - name: 上传站点构建产物
-        uses: actions/upload-pages-artifact@v3
+      - run: npm run build:portable
+      - name: 浏览器端到端测试
+        run: |
+          npm install --no-save --package-lock=false playwright@1.58.2
+          npx playwright install --with-deps chromium
+          node tests/browser.mjs
+      - name: 验证发布产物
+        run: |
+          test -f dist/index.html
+          test -f dist/sw.js
+          test -f dist/manifest.webmanifest
+          test -f dist-portable/index.html
+          node --check dist/sw.js
+          node --check extension/background.js
+          mkdir -p release
+          cp dist-portable/index.html release/fluxnav-portable.html
+          (cd extension && zip -r ../release/fluxnav-extension.zip .)
+      - uses: actions/upload-artifact@v4
         with:
-          path: ./dist
-
+          name: fluxnav-distribution
+          path: release/
+      - uses: actions/upload-pages-artifact@v3
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        with:
+          path: dist/
   deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: 发布 GitHub Pages
+      - uses: actions/configure-pages@v5
+      - uses: actions/deploy-pages@v4
         id: deployment
-        uses: actions/deploy-pages@v4
+  release:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: deploy
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: fluxnav-distribution
+          path: release
+      - name: 发布正式版本
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="v$(node -p "require('./package.json').version")"
+          if ! gh release view "$VERSION" >/dev/null 2>&1; then
+            gh release create "$VERSION" release/* --target "$GITHUB_SHA" --title "FluxNav $VERSION" --notes-file CHANGELOG.md
+          fi
