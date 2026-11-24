@@ -7,7 +7,8 @@ button:active:not(:disabled):not(.resize-handle){filter:brightness(.97)}
 .home-v18,.workspace{animation:flux-page-in var(--motion-normal) var(--ease-enter) both}
 /* Keep the same grid track count at every state. Explicit grid placement avoids auto-placement jumps. */
 @media(min-width:651px){
- .workspace-body,.workspace-body[data-sidebar=true],.workspace-body[data-details=true],.workspace-body[data-sidebar=true][data-details=true]{--nav-track:var(--rail-width);--left-divider:0px;--right-divider:0px;--inspector-track:0px;grid-template-columns:var(--nav-track) var(--left-divider) minmax(0,1fr) var(--right-divider) var(--inspector-track);transition:grid-template-columns var(--motion-pane) var(--ease-standard)}
+ .workspace-body{--nav-track:var(--rail-width);--left-divider:0px;--right-divider:0px;--inspector-track:0px}
+ .workspace-body,.workspace-body[data-sidebar=true],.workspace-body[data-details=true],.workspace-body[data-sidebar=true][data-details=true]{grid-template-columns:var(--nav-track) var(--left-divider) minmax(0,1fr) var(--right-divider) var(--inspector-track);transition:grid-template-columns var(--motion-pane) var(--ease-standard)}
  .workspace-body[data-sidebar=true]{--nav-track:184px}
  .workspace-body[data-details=true]{--inspector-track:290px}
  .workspace-body>.workspace-nav{grid-column:1;grid-row:1}
@@ -26,8 +27,9 @@ button:active:not(:disabled):not(.resize-handle){filter:brightness(.97)}
  .workspace-nav .nav-entry,.workspace-nav[data-expanded=false] .nav-entry{width:100%;min-height:34px;height:34px;justify-content:flex-start;padding:5px 9px;gap:0;overflow:hidden;position:relative}
  .workspace-nav .nav-entry .nav-label,.workspace-nav[data-expanded=false] .nav-entry .nav-label{flex:0 0 auto;min-width:0;gap:9px;justify-content:flex-start;white-space:nowrap}
  .workspace-nav .nav-entry .nav-label svg{flex:0 0 16px;width:16px;height:16px}
- .workspace-nav .nav-entry .nav-label>span,.workspace-nav[data-expanded=false] .nav-entry .nav-label>span{display:block;white-space:nowrap;max-width:calc(var(--nav-track) - 88px);overflow:hidden;text-overflow:ellipsis}
- .workspace-nav .nav-entry small,.workspace-nav[data-expanded=false] .nav-entry small{display:block;position:absolute;right:7px;white-space:nowrap}
+ .workspace-nav .nav-entry .nav-label>span,.workspace-nav[data-expanded=false] .nav-entry .nav-label>span{display:block;white-space:nowrap;max-width:calc(var(--sidebar-width,208px) - 88px);overflow:hidden;text-overflow:ellipsis}
+ .workspace-nav .nav-entry small,.workspace-nav[data-expanded=false] .nav-entry small{display:block;position:absolute;right:7px;white-space:nowrap;max-width:42px;overflow:hidden;text-overflow:ellipsis}
+ .workspace-nav[data-expanded=true] .nav-entry .nav-label{flex:1;min-width:0;padding-right:40px}
  .workspace-nav .sidebar-bottom,.workspace-nav[data-expanded=false] .sidebar-bottom{padding:8px 6px}
  .workspace-nav .sidebar-bottom button,.workspace-nav[data-expanded=false] .sidebar-bottom button{justify-content:flex-start;padding:6px 9px;gap:9px;height:32px;min-height:32px;white-space:nowrap;overflow:hidden}
  .workspace-nav .sidebar-bottom button svg{flex:0 0 16px;width:16px;height:16px}
@@ -81,3 +83,5 @@ dialog[open][data-closing=true]::backdrop{animation:flux-backdrop-out var(--moti
 .resources.grid article[data-drop=after]{box-shadow:inset -3px 0 var(--focus)}
 .resources.grid article[data-drop]{border-top-color:var(--line);border-bottom-color:var(--line)}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+@media(min-width:651px){.workspace-nav .nav-entry .nav-label>span{min-width:0}.workspace-nav[data-expanded=false] .nav-entry .nav-label>span{flex:none}.workspace-nav .sidebar-profile>div{min-width:0}.workspace-nav[data-expanded=false] .sidebar-profile>div{min-width:112px}.workspace .resource-inspector[data-visible=false] .inspector-scroll{overflow:hidden}}
