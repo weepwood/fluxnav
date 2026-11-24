@@ -24,8 +24,7 @@ export function Home({appearance,onAppearance,bookmarks,query,setQuery,tag,setTa
  const candidates=useMemo(()=>bookmarks.filter(b=>(!tag||b.tags.includes(tag))&&(!onlyFavorite||b.favorite||b.pinned)),[bookmarks,tag,onlyFavorite]);const {items,pending}=useSearch(candidates,deferred,deferred?'relevance':sort);
  const filtering=!!query||!!tag||onlyFavorite;const loading=pending||query!==deferred;
  const splitPinned=appearance.homeShowPinned&&!filtering;
- const pinned=splitPinned?items.filter(b=>b.pinned):[];
- const normal=splitPinned?items.filter(b=>!b.pinned):items;
+ const {pinned,normal}=useMemo(()=>{if(!splitPinned)return {pinned:[] as Bookmark[],normal:items};const pinned:Bookmark[]=[],normal:Bookmark[]=[];for(const b of items)(b.pinned?pinned:normal).push(b);return {pinned,normal};},[items,splitPinned]);
  const shownTags=showAllTags?tags.slice(0,120):tags.slice(0,12);const displayedTags=tag&&!shownTags.some(([t])=>t===tag)?[...shownTags,...tags.filter(([t])=>t===tag)]:shownTags;
  const clear=()=>{setQuery('');setTag('');setOnlyFavorite(false);setLimit(48);};
  return <div className="home home-v18 home-background" data-layout={appearance.homeLayout} data-background={appearance.homeBackground} data-density={appearance.homeDensity} data-width={appearance.homeWidth} data-accent={appearance.homeAccent}>
