@@ -89,3 +89,7 @@ dialog .settings-layout .settings{min-width:0}
  .resource-menu button{min-height:40px}.workspace .inspector-action-grid button{min-height:40px}
  .home-v18 .home-library-tools button,.home-v18 .home-tags button{min-height:36px}
 }
+
+/* Extremely short windows must retain a scrollable list even with batch tools open. */
+@media(max-height:420px){.workspace .library-head{max-height:55%;overflow:auto;overscroll-behavior:contain}.workspace .library-scroll{min-height:48px}.workspace .inspector-header{min-height:40px;padding-block:4px}.workspace .sidebar-profile{min-height:36px}.workspace .sidebar-bottom button{min-height:28px}.workspace .inspector-actions{max-height:48%}}
+@media(pointer:coarse){.workspace .resources.grid article:not(:has(>.drag-grip)) .resource-main,.workspace .resources.grid article:has(>.drag-grip) .resource-main{grid-column:2/-1}.workspace .resources.grid article{grid-template-columns:18px minmax(0,1fr) 32px}.workspace .resources.grid article>.icon-button:not(.resource-more){grid-column:2}.workspace .resources.grid article>.resource-more{grid-column:3}}
