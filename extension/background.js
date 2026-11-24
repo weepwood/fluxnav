@@ -1,0 +1,1 @@
+chrome.action.onClicked.addListener(async tab=>{if(!tab.url||!/^https?:\/\//i.test(tab.url))return;const params=new URLSearchParams({url:tab.url,title:tab.title||''});await chrome.tabs.create({url:'https://weepwood.github.io/fluxnav/#/capture?'+params.toString()});});
