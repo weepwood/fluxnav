@@ -21,15 +21,7 @@ test('batch updates preserve unselected record identity and unique tags',()=>{
  assert.equal(updated.bookmarks[0].collection,'设计');assert.equal(updated.bookmarks[0].updatedAt,20);assert.equal(updated.bookmarks[1],lib.bookmarks[1]);
  assert.deepEqual(appendTags(['a'],[' a ','b','']),['a','b']);assert.ok(sameLibrary(lib,parseLibrary(lib)));assert.ok(!sameLibrary(lib,updated));
 });
-test('search and batch updates on 10000 records',()=>{
- const list=Array.from({length:10000},(_,i)=>make('b'+i,'https://site'+i+'.example.com',{title:'Project '+i,tags:[i%2?'Design':'Code']}));
- const lib={schemaVersion:1 as const,bookmarks:list};const start=performance.now();
- assert.equal(searchBookmarks(list,'project code','relevance').length,5000);
- assert.equal(searchBookmarks(list,'site9999','relevance')[0].id,'b9999');
- const updated=patchBookmarks(lib,list.slice(0,5000).map(b=>b.id),{favorite:true});
- assert.equal(updated.bookmarks.filter(b=>b.favorite).length,5000);
- console.log('10000-record search and batch checks: '+Math.round(performance.now()-start)+' ms (runner-specific)');
-});
+
 
 test('duplicate merge keeps selected record, metadata and recoverable tombstones',()=>{
  const a=make('a','https://a.com/#intro',{title:'Keep',tags:['one'],visitCount:2,collection:'A'});

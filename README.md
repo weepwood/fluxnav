@@ -7,7 +7,7 @@ Local-first AI Bookmark Workspace。保留编辑式起始页，提供三栏资�
 
 ## 开发
 
-Node.js 22；运行 npm ci、npm run dev。npm run check 执行 TypeScript 和领域逻辑测试。npm run build 生成支持离线的 Web 站点，npm run build:portable 生成单文件 HTML（离线分发仍依赖浏览器存储能力）。GitHub Actions 在 PR 上执行检查，main 构建成功后部署并发布版本。
+Node.js 22；运行 npm ci、npm run dev。npm run check 执行 TypeScript 和领域逻辑测试。npm run build 生成支持离线的 Web 站点，npm run build:portable 生成单文件 HTML（离线分发仍依赖浏览器存储能力）。GitHub Actions 的日常 PR 和 main 仅执行快速检查及 Web 构建，main 成功后自动部署 GitHub Pages；不自动创建 Release。正式版本由独立的手动工作流验证和发布。
 
 ## 数据与迁移
 
@@ -38,3 +38,11 @@ extension/ 为 Chrome/Edge MV3 捕获扩展，加载解压目录即可使用；�
 ## 1.2 工作台细化
 
 在设置中可调整首页布局、列表密度和每页数量；宽屏桌面支持鼠标或键盘调整分栏。收藏集重命名会更新未删除记录（包括归档），重复资源可逐组确认合并：保留指定记录的标题及网址，汇总标签、备注、描述、访问统计，其余记录移入回收站。规范化网址忽略 URL 片段，合并前请核对页面章节。长文本与标签仍受字段长度限制。配置仅保存在当前浏览器。
+
+## CI/CD 与正式发布
+
+日常迭代：PR 运行 `npm run check:quick`（类型检查、核心单元测试）以及 Web 构建；合并 main 后自动部署 Pages。跳过 E2E、压力测试、安全审计、便携版与扩展打包，不因版本号变化自动发布 Release。
+
+正式版本节点：在 main 上准备好版本号（package.json、package-lock.json、extension/manifest.json）与 CHANGELOG.md，然后打开 Actions → 正式版本完整验证与发布 → Run workflow。默认仅完整验证并生成分发产物；勾选 publish 后，全部测试通过才创建对应提交的 Git tag 与 GitHub Release。既有版本或标签不会被覆盖。也可使用 `gh workflow run release.yml --ref main -f publish=true`。正式发布工作流不重复部署 Pages。
+
+本地命令：`npm run check:quick` 用于日常检查；`npm run check` 包含完整单元测试和压力测试；浏览器 E2E 单独运行。正式发布工作流可以随时手动用于专项验证，不必等到新版本。
