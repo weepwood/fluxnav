@@ -1,4 +1,5 @@
-import { parseLibrary, parseBookmark, type Library } from './domain';
+import { parseBookmark, type Library } from './domain.ts';
+import {decodeLibrary,encodeLibrary} from './crypto.ts';
 export type AIProfile = {name: string; baseUrl: string; model: string};
 export const defaultAI: AIProfile = {name:'OpenAI',baseUrl:'https://api.openai.com/v1',model:'gpt-4o-mini'};
 function endpoint(raw: string) {
@@ -29,33 +30,34 @@ export function parseAIItems(content: string) {
 export type SyncConfig = {provider:'gist'|'webdav'; gistId:string; url:string};
 export const defaultSync: SyncConfig = {provider:'gist',gistId:'',url:''};
 const gistFile = 'fluxnav-bookmarks.json';
-export async function pullRemote(config: SyncConfig, token: string) {
+export async function pullRemote(config: SyncConfig, token: string, password = '') {
   if (!token.trim()) throw Error('请输入本次会话的同步凭据');
   const headers = {Authorization:'Bearer '+token.trim()};
   if (config.provider === 'webdav') {
     const response = await request(endpoint(config.url),{headers});
-    return {library:parseLibrary(await response.json()),revision:response.headers.get('ETag') || ''};
+    return {library:await decodeLibrary(await response.json(),password),revision:response.headers.get('ETag') || ''};
   }
   if (!/^[a-f\d]+$/i.test(config.gistId)) throw Error('请输入有效的 Gist ID');
   const response = await request('https://api.github.com/gists/'+config.gistId,{headers});
   const data = await response.json();
   const file = data.files?.[gistFile];
   if (!file || file.truncated || typeof file.content !== 'string') throw Error('远端文件不存在或过大，请手动导出恢复');
-  return {library:parseLibrary(JSON.parse(file.content)),revision:String(data.history?.[0]?.version || '')};
+  return {library:await decodeLibrary(JSON.parse(file.content),password),revision:String(data.history?.[0]?.version || '')};
 }
-export async function pushRemote(config: SyncConfig, token: string, library: Library, revision: string) {
+export async function pushRemote(config: SyncConfig, token: string, library: Library, revision: string, password = '') {
   if (!token.trim()) throw Error('请输入本次会话的同步凭据');
   const headers = {Authorization:'Bearer '+token.trim(),'Content-Type':'application/json'};
+  const payload=await encodeLibrary(library,password);
   if (config.provider === 'webdav') {
     if (!revision) throw Error('服务端必须提供 ETag，避免无条件覆盖；请先读取远端');
-    await request(endpoint(config.url),{method:'PUT',headers:{...headers,'If-Match':revision},body:JSON.stringify(library)});
+    await request(endpoint(config.url),{method:'PUT',headers:{...headers,'If-Match':revision},body:JSON.stringify(payload)});
     return config.gistId;
   }
   if (config.gistId) {
-    const current = await pullRemote(config,token);
+    const current = await pullRemote(config,token,password);
     if (!revision || current.revision !== revision) throw Error('远端已发生变化，请重新拉取合并');
   }
-  const response = await request('https://api.github.com/gists'+(config.gistId?'/'+config.gistId:''),{method:config.gistId?'PATCH':'POST',headers,body:JSON.stringify({...(config.gistId?{}:{public:false,description:'FluxNav library'}),files:{[gistFile]:{content:JSON.stringify(library)}}})});
+  const response = await request('https://api.github.com/gists'+(config.gistId?'/'+config.gistId:''),{method:config.gistId?'PATCH':'POST',headers,body:JSON.stringify({...(config.gistId?{}:{public:false,description:'FluxNav library'}),files:{[gistFile]:{content:JSON.stringify(payload)}}})});
   const data = await response.json();
   return String(data.id);
 }

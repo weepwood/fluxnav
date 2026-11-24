@@ -20,6 +20,8 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
+      - name: 检查生产依赖安全
+        run: npm audit --omit=dev --audit-level=high
       - run: npm run check
       - run: npm run build
         env:

@@ -19,7 +19,7 @@ Node.js 22；运行 npm ci、npm run dev。npm run check 执行 TypeScript 和�
 
 ## 同步
 
-GitHub Secret Gist 或自定义 JSON 服务。Gist 不是严格私密存储，请勿同步敏感内容；同步前快照和合并预览，按 ID、修改时间和删除标记确定版本。Gist 推送前检查远端版本，但非原子条件更新，极端并发仍有竞态。自定义服务须支持 Bearer GET/PUT、CORS、ETag/If-Match，且预先创建合法 JSON 资源。Token/API Key 只在当前页面内存中。不要输入权限过大的 Token。
+GitHub Secret Gist 或自定义 JSON 服务。Gist 不是严格私密存储，可设置独立口令，通过 PBKDF2-SHA256（600,000 次）派生 AES-256-GCM 密钥，在浏览器内加密后再同步。口令不持久化，丢失不可恢复；使用过明文同步的旧 Gist 历史版本可能仍包含原始数据。同步前快照和合并预览，按 ID、修改时间和删除标记确定版本。Gist 推送前检查远端版本，但非原子条件更新，极端并发仍有竞态。自定义服务须支持 Bearer GET/PUT、CORS、ETag/If-Match，且预先创建合法 JSON 资源。Token/API Key 只在当前页面内存中。不要输入权限过大的 Token。
 
 ## 扩展与离线
 
@@ -27,4 +27,4 @@ extension/ 为 Chrome/Edge MV3 捕获扩展，加载解压目录即可使用；�
 
 ## 限制
 
-不提供任意网页内容抓取、自动失效链接检查、端到端加密、实时多设备同步或商店上架。浏览器跨域限制下，相关能力需要独立服务。同步采用整条记录版本合并而非字段级 CRDT。
+不提供任意网页内容抓取、自动失效链接检查、实时多设备同步或商店上架。浏览器跨域限制下，相关能力需要独立服务。同步采用整条记录版本合并而非字段级 CRDT。
