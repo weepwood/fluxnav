@@ -1,0 +1,27 @@
+name: 交互动效专项检查
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'tests/motion-visual.mjs'
+      - '.github/workflows/motion-visual.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: motion-visual-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  visual:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm install --no-save --package-lock=false --no-audit --no-fund playwright@1.58.2
+      - run: npx playwright install chromium
+      - run: node tests/motion-visual.mjs

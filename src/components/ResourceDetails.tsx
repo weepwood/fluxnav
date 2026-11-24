@@ -1,10 +1,10 @@
 import type {Bookmark} from '../domain';
 import {SiteIcon} from './Home';
 import {Icon} from './Icon';
-type Props={bookmark?:Bookmark;siteIcons:boolean;onClose:()=>void;onOpen:(b:Bookmark)=>void;onEdit:(b:Bookmark)=>void;onCopy:(b:Bookmark)=>void;onPatch:(ids:string[],change:Partial<Bookmark>)=>void;copyStatus:string};
+type Props={visible:boolean;bookmark?:Bookmark;siteIcons:boolean;onClose:()=>void;onOpen:(b:Bookmark)=>void;onEdit:(b:Bookmark)=>void;onCopy:(b:Bookmark)=>void;onPatch:(ids:string[],change:Partial<Bookmark>)=>void;copyStatus:string};
 const formatDate=(value:number)=>value?new Date(value).toLocaleDateString():'—';
-export function ResourceDetails({bookmark:b,siteIcons,onClose,onOpen,onEdit,onCopy,onPatch,copyStatus}:Props){
- return <aside className="details resource-inspector" aria-label="资源详情" data-empty={!b}><header className="inspector-header"><strong>资源详情</strong><button className="icon-button" aria-label="关闭详情" onClick={onClose}><Icon name="close"/></button></header>
+export function ResourceDetails({visible,bookmark:b,siteIcons,onClose,onOpen,onEdit,onCopy,onPatch,copyStatus}:Props){
+ return <aside className="details resource-inspector" aria-label="资源详情" data-empty={!b} data-visible={visible} inert={!visible}><header className="inspector-header"><strong>资源详情</strong><button className="icon-button" aria-label="关闭详情" onClick={onClose}><Icon name="close"/></button></header>
  {!b?<div className="inspector-empty"><span className="empty-icon"><Icon name="panel" size={23}/></span><strong>未选择资源</strong><p>点击列表中的书签，查看信息与操作。</p></div>:<>
  <div className="inspector-scroll"><div className="detail-identity"><SiteIcon bookmark={b} remote={siteIcons}/><h2>{b.title}</h2>{b.deleted?<span className="url">{b.url}</span>:<a className="url" href={b.url} target="_blank" rel="noopener noreferrer">{b.url}</a>}<div className="inspector-flags">{b.pinned&&<span><Icon name="pin" size={12}/>置顶</span>}{b.favorite&&<span><Icon name="favorite" size={12}/>收藏</span>}{b.archived&&<span><Icon name="archive" size={12}/>归档</span>}{b.deleted&&<span><Icon name="trash" size={12}/>回收站</span>}</div></div>
  <section className="inspector-section"><h3>信息</h3><dl className="inspector-meta"><div><dt>收藏集</dt><dd>{b.collection||'未分类'}</dd></div><div><dt>添加日期</dt><dd>{formatDate(b.addedAt)}</dd></div><div><dt>最近访问</dt><dd>{formatDate(b.lastVisited)}</dd></div><div><dt>访问次数</dt><dd>{b.visitCount.toLocaleString()}</dd></div></dl></section>
